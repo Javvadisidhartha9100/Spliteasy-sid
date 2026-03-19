@@ -196,6 +196,3 @@ struct CustomBottomBar: View {
     }
 }
 
-#Preview {
-    ContentView()
-}

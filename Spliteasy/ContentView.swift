@@ -1,11 +1,3 @@
-//
-//  ContentView 2.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/19/26.
-//
-
-
 import SwiftUI
 
 struct ContentView: View {
@@ -14,6 +6,7 @@ struct ContentView: View {
     @State private var showPlusMenu = false
     @State private var selectedFilter: BalanceFilter = .none
     @State private var showExpenseSelectionPage = false
+    @State private var showCreateGroupPage = false
 
     @State private var friendsData: [BalanceItem] = [
         .init(kind: .friend, name: "Friend -1", amount: 25, direction: .youOwe, participantCount: 2),
@@ -47,7 +40,7 @@ struct ContentView: View {
             Color.gray.opacity(0.12)
                 .ignoresSafeArea()
 
-            if showPlusMenu && !showExpenseSelectionPage && selectedTab != .friends && selectedTab != .activity && selectedTab != .add {
+            if showPlusMenu && !showExpenseSelectionPage && !showCreateGroupPage && selectedTab != .friends && selectedTab != .activity && selectedTab != .add {
                 Color.black.opacity(0.001)
                     .ignoresSafeArea()
                     .onTapGesture {
@@ -57,14 +50,21 @@ struct ContentView: View {
                     }
             }
 
-            if showExpenseSelectionPage {
+            if showCreateGroupPage {
+                CreateGroupPageView(
+                    selectedTab: $selectedTab,
+                    availableFriends: friendsData,
+                    onSaveGroup: saveNewGroup
+                )
+            } else if showExpenseSelectionPage {
                 RecentSelectionPageView(
                     recentFriends: recentFriends,
                     recentGroups: recentGroups,
                     onSelectItem: { item in
                         openExpensePage(for: item)
                     },
-                    selectedTab: $selectedTab
+                    selectedTab: $selectedTab,
+                    showExpenseSelectionPage: $showExpenseSelectionPage
                 )
             } else {
                 switch selectedTab {
@@ -110,22 +110,28 @@ struct ContentView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            CustomBottomBar(
-                selectedTab: $selectedTab,
-                selectedSection: selectedSection,
-                showActionButton: selectedTab == .friends && !showExpenseSelectionPage,
-                showPlusMenu: $showPlusMenu,
-                hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add || showExpenseSelectionPage,
-                actionButtonPressed: handleFriendsActionButtonTap,
-                takePicturePressed: handleTakePicture,
-                addExpensePressed: handleAddExpense
-            )
-            .padding(.horizontal, 5)
-            .padding(.bottom, -145)
+            if !showCreateGroupPage {
+                CustomBottomBar(
+                    selectedTab: $selectedTab,
+                    selectedSection: selectedSection,
+                    showActionButton: selectedTab == .friends && !showExpenseSelectionPage && !showCreateGroupPage,
+                    showPlusMenu: $showPlusMenu,
+                    hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add || showExpenseSelectionPage || showCreateGroupPage,
+                    actionButtonPressed: handleFriendsActionButtonTap,
+                    takePicturePressed: handleTakePicture,
+                    addExpensePressed: handleAddExpense
+                )
+                .padding(.horizontal, 5)
+                .padding(.bottom, -145)
+            }
         }
         .onChange(of: selectedTab) {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 showPlusMenu = false
+            }
+
+            if selectedTab != .friends {
+                showCreateGroupPage = false
             }
         }
     }
@@ -176,11 +182,31 @@ struct ContentView: View {
     private func openExpensePage(for item: BalanceItem) {
         selectedExpenseTarget = item
         showExpenseSelectionPage = false
+        showCreateGroupPage = false
         selectedTab = .add
 
         if item.kind == .group {
             selectedSection = .groups
         }
+    }
+
+    private func saveNewGroup(name: String, type: GroupType, members: [BalanceItem]) {
+        let participantCount = members.count + 1
+
+        let newGroup = BalanceItem(
+            kind: .group,
+            name: name,
+            amount: 0,
+            direction: .owesYou,
+            participantCount: participantCount,
+            expenses: []
+        )
+
+        groupsData.insert(newGroup, at: 0)
+
+        selectedSection = .groups
+        showCreateGroupPage = false
+        selectedTab = .friends
     }
 
     private func saveExpense(itemID: UUID, description: String, amount: Double, direction: BalanceDirection) {
@@ -279,7 +305,7 @@ struct ContentView: View {
         if selectedSection == .friends {
             print("Add Friend tapped")
         } else {
-            print("Create Group tapped")
+            showCreateGroupPage = true
         }
     }
 
@@ -293,6 +319,7 @@ struct ContentView: View {
     private func handleAddExpense() {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             showPlusMenu = false
+            showCreateGroupPage = false
             showExpenseSelectionPage = true
         }
     }

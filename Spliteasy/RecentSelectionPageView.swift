@@ -12,6 +12,7 @@ struct RecentSelectionPageView: View {
     let recentGroups: [BalanceItem]
     let onSelectItem: (BalanceItem) -> Void
     @Binding var selectedTab: Tab
+    @Binding var showExpenseSelectionPage: Bool
 
     var body: some View {
         ZStack {
@@ -40,7 +41,10 @@ struct RecentSelectionPageView: View {
     private var headerSection: some View {
         HStack {
             Button {
-                selectedTab = .home
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showExpenseSelectionPage = false
+                    selectedTab = .home
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 22, weight: .bold))
