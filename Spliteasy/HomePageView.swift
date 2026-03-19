@@ -11,6 +11,10 @@ struct HomePageView: View {
     let friendsData: [BalanceItem]
     let headerTitle: String
     @Binding var selectedFilter: BalanceFilter
+    let totalYouOwe: Double
+    let totalYouAreOwed: Double
+    let onSelectItem: (BalanceItem) -> Void
+
     @State private var showFilterSheet = false
 
     var body: some View {
@@ -23,8 +27,13 @@ struct HomePageView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     ForEach(friendsData) { item in
-                        HomeBalanceRow(item: item)
-                            .padding(.vertical, 6)
+                        Button {
+                            onSelectItem(item)
+                        } label: {
+                            HomeBalanceRow(item: item)
+                                .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     Spacer(minLength: 180)
@@ -36,6 +45,22 @@ struct HomePageView: View {
         .sheet(isPresented: $showFilterSheet) {
             FilterPageView(selectedFilter: $selectedFilter)
         }
+    }
+
+    private var overallTitle: String {
+        let net = totalYouAreOwed - totalYouOwe
+
+        if net > 0 {
+            return "You are owed $\(formattedAmount(net))"
+        } else if net < 0 {
+            return "You owe $\(formattedAmount(abs(net)))"
+        } else {
+            return "You are settled up"
+        }
+    }
+
+    private func formattedAmount(_ value: Double) -> String {
+        String(format: "%.2f", value)
     }
 
     private func headerView(title: String) -> some View {
@@ -68,7 +93,7 @@ struct HomePageView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.gray)
 
-                    Text("You are owed $3999.99")
+                    Text(overallTitle)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.black)
                         .minimumScaleFactor(0.85)
@@ -94,14 +119,14 @@ struct HomePageView: View {
 
             HStack(spacing: 10) {
                 balancePill(
-                    text: "Owe $0.00",
+                    text: "Owe $\(formattedAmount(totalYouOwe))",
                     bg: Color.red.opacity(0.08),
-                    textColor: Color.red.opacity(0.8),
+                    textColor: Color.red.opacity(0.85),
                     icon: "arrow.down.right"
                 )
 
                 balancePill(
-                    text: "Owed $3999.99",
+                    text: "Owed $\(formattedAmount(totalYouAreOwed))",
                     bg: Color.green.opacity(0.10),
                     textColor: Color.green.opacity(0.85),
                     icon: "arrow.up.right"

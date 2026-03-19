@@ -8,32 +8,8 @@
 import SwiftUI
 
 struct ActivityPageView: View {
+    let transactions: [TransactionItem]
     @State private var selectedChart: ActivityChartType = .category
-
-    private let categoryData: [CategoryItem] = [
-        .init(name: "Other", amount: 4000, color: Color(red: 0.62, green: 0.68, blue: 0.77)),
-        .init(name: "Shopping", amount: 187, color: Color(red: 0.89, green: 0.27, blue: 0.58)),
-        .init(name: "Food", amount: 87, color: Color(red: 0.49, green: 0.38, blue: 0.78)),
-        .init(name: "Transport", amount: 45, color: Color(red: 0.38, green: 0.39, blue: 0.88))
-    ]
-
-    private let monthlyData: [MonthlyExpense] = [
-        .init(month: "Oct", amount: 0),
-        .init(month: "Nov", amount: 0),
-        .init(month: "Dec", amount: 0),
-        .init(month: "Jan", amount: 0),
-        .init(month: "Feb", amount: 2300),
-        .init(month: "Mar", amount: 4200)
-    ]
-
-    private let transactions: [TransactionItem] = [
-        .init(title: "trip to nyc", subtitle: "Sidhartha Javvadi paid · 3 people", amount: 4000.00, date: "Mar 16"),
-        .init(title: "walmart", subtitle: "You paid · 3 people", amount: 120.00, date: "Mar 12"),
-        .init(title: "Groceries", subtitle: "Taylor paid · 3 people", amount: 67.30, date: "Mar 11"),
-        .init(title: "Dinner at Olive Garden", subtitle: "You paid · 4 people", amount: 86.50, date: "Mar 9"),
-        .init(title: "Uber to Airport", subtitle: "Alex paid · 4 people", amount: 45.00, date: "Mar 8"),
-        .init(title: "March Rent", subtitle: "You paid · 3 people", amount: 2400.00, date: "Feb 28")
-    ]
 
     var body: some View {
         GeometryReader { geo in
@@ -91,7 +67,7 @@ struct ActivityPageView: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(Color(red: 0.25, green: 0.29, blue: 0.37))
 
-                    Text(selectedChart == .category ? "March 2026" : "Last 6 months")
+                    Text(selectedChart == .category ? currentMonthTitle : "Last 6 months")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
                 }
@@ -128,96 +104,118 @@ struct ActivityPageView: View {
         )
     }
 
-    private var categoryChartSection: some View {
-        VStack(spacing: 12) {
-            ModernDonutChartView(data: categoryData)
-                .frame(height: 130)
+    private var currentMonthTitle: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: Date())
+    }
 
-            VStack(spacing: 8) {
+    private var categoryData: [CategoryItem] {
+        let currentMonthKey = monthKey(for: Date())
+        let monthTransactions = transactions.filter { $0.monthKey == currentMonthKey }
+
+        let grouped = Dictionary(grouping: monthTransactions, by: { $0.category })
+            .mapValues { items in
+                items.reduce(0) { $0 + $1.amount }
+            }
+
+        let colors: [String: Color] = [
+            "Food": Color(red: 0.49, green: 0.38, blue: 0.78),
+            "Transport": Color(red: 0.38, green: 0.39, blue: 0.88),
+            "Shopping": Color(red: 0.89, green: 0.27, blue: 0.58),
+            "Travel": Color(red: 0.22, green: 0.70, blue: 0.60),
+            "Other": Color(red: 0.62, green: 0.68, blue: 0.77)
+        ]
+
+        let sorted = grouped
+            .map { key, value in
+                CategoryItem(name: key, amount: value, color: colors[key] ?? Color.gray)
+            }
+            .sorted { $0.amount > $1.amount }
+
+        return sorted.isEmpty
+            ? [CategoryItem(name: "Other", amount: 0.01, color: Color(red: 0.62, green: 0.68, blue: 0.77))]
+            : sorted
+    }
+
+    private var monthlyData: [MonthlyExpense] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+
+        let grouped = Dictionary(grouping: transactions, by: { $0.monthKey })
+            .mapValues { items in
+                items.reduce(0) { $0 + $1.amount }
+            }
+
+        return (0..<6).compactMap { offset in
+            guard let date = calendar.date(byAdding: .month, value: -(5 - offset), to: Date()) else { return nil }
+            let key = monthKey(for: date)
+            return MonthlyExpense(
+                month: formatter.string(from: date),
+                amount: grouped[key] ?? 0
+            )
+        }
+    }
+
+    private var categoryChartSection: some View {
+        HStack(spacing: 18) {
+            ModernDonutChartView(data: categoryData)
+                .frame(width: 146, height: 146)
+
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(categoryData) { item in
                     HStack(spacing: 10) {
                         Circle()
                             .fill(item.color)
                             .frame(width: 10, height: 10)
 
-                        Text(item.name)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color(red: 0.29, green: 0.34, blue: 0.42))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.name)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(Color(red: 0.22, green: 0.26, blue: 0.34))
 
-                        Spacer()
-
-                        Text("$\(Int(item.amount))")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(red: 0.16, green: 0.20, blue: 0.28))
+                            Text("$\(String(format: "%.2f", item.amount))")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                        }
                     }
                 }
             }
+
+            Spacer(minLength: 0)
         }
     }
 
     private var monthChartSection: some View {
-        let chartHeight: CGFloat = 120
-        let maxValue: Double = 6000
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .bottom, spacing: 12) {
+                ForEach(monthlyData) { item in
+                    VStack(spacing: 8) {
+                        Text(item.amount > 0 ? shortAmount(item.amount) : "")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(Color(red: 0.42, green: 0.46, blue: 0.54))
+                            .frame(height: 16)
 
-        return VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .trailing, spacing: 0) {
-                    Spacer().frame(height: 2)
-                    Text("$6000")
-                    Spacer()
-                    Text("$4500")
-                    Spacer()
-                    Text("$3000")
-                    Spacer()
-                    Text("$1500")
-                    Spacer()
-                    Text("$0")
-                }
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
-                .frame(width: 42, height: chartHeight)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.54, green: 0.25, blue: 0.95), Color(red: 0.43, green: 0.20, blue: 0.86)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 28, height: barHeight(for: item.amount))
 
-                VStack(spacing: 0) {
-                    ZStack(alignment: .bottom) {
-                        VStack(spacing: chartHeight / 4) {
-                            ForEach(0..<5, id: \.self) { _ in
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.15))
-                                    .frame(height: 1)
-                            }
-                        }
-
-                        HStack(alignment: .bottom, spacing: 18) {
-                            ForEach(monthlyData) { item in
-                                VStack(spacing: 8) {
-                                    ZStack(alignment: .bottom) {
-                                        Color.clear
-                                            .frame(width: 28, height: chartHeight)
-
-                                        if item.amount > 0 {
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(
-                                                    item.month == "Mar"
-                                                    ? Color(red: 0.50, green: 0.39, blue: 0.77)
-                                                    : Color(red: 0.70, green: 0.64, blue: 0.88)
-                                                )
-                                                .frame(width: 28, height: CGFloat(item.amount / maxValue) * chartHeight)
-                                        }
-                                    }
-
-                                    Text(item.month)
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 4)
+                        Text(item.month)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color(red: 0.42, green: 0.46, blue: 0.54))
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(height: chartHeight + 24)
             }
+            .frame(height: 190, alignment: .bottom)
         }
-        .frame(height: 165)
     }
 
     private var chartToggleButtons: some View {
@@ -281,13 +279,34 @@ struct ActivityPageView: View {
             .buttonStyle(.plain)
         }
     }
+
+    private func monthKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter.string(from: date)
+    }
+
+    private func shortAmount(_ amount: Double) -> String {
+        if amount >= 1000 {
+            return String(format: "$%.1fk", amount / 1000)
+        }
+        return String(format: "$%.0f", amount)
+    }
+
+    private func barHeight(for amount: Double) -> CGFloat {
+        let maxAmount = max(monthlyData.map(\.amount).max() ?? 1, 1)
+        let minHeight: CGFloat = amount > 0 ? 16 : 4
+        let maxHeight: CGFloat = 116
+        let normalized = amount / maxAmount
+        return amount > 0 ? max(minHeight, CGFloat(normalized) * maxHeight) : minHeight
+    }
 }
 
 struct ModernDonutChartView: View {
     let data: [CategoryItem]
 
     private var total: Double {
-        data.reduce(0) { $0 + $1.amount }
+        max(data.reduce(0) { $0 + $1.amount }, 0.01)
     }
 
     var body: some View {
@@ -306,6 +325,16 @@ struct ModernDonutChartView: View {
             Circle()
                 .fill(Color(red: 0.95, green: 0.95, blue: 0.96))
                 .frame(width: 60, height: 60)
+
+            VStack(spacing: 2) {
+                Text("$\(String(format: "%.0f", data.reduce(0) { $0 + $1.amount }))")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Color(red: 0.22, green: 0.26, blue: 0.34))
+
+                Text("Month")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+            }
         }
         .rotationEffect(.degrees(-90))
     }
@@ -332,7 +361,7 @@ struct ActivityTransactionRow: View {
                         .fill(Color(red: 0.91, green: 0.88, blue: 0.98))
                         .frame(width: 56, height: 56)
 
-                    Image(systemName: "receipt")
+                    Image(systemName: iconName(for: item.category))
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
                 }
@@ -366,6 +395,16 @@ struct ActivityTransactionRow: View {
 
             Divider()
                 .background(Color.gray.opacity(0.2))
+        }
+    }
+
+    private func iconName(for category: String) -> String {
+        switch category {
+        case "Food": return "fork.knife"
+        case "Transport": return "car.fill"
+        case "Shopping": return "bag.fill"
+        case "Travel": return "airplane"
+        default: return "receipt"
         }
     }
 }

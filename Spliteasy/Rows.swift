@@ -65,7 +65,7 @@ struct BalanceRow: View {
     }
 
     private var balanceColor: Color {
-        item.balanceText.lowercased().contains("owes you")
+        item.direction == .owesYou
             ? Color.green.opacity(0.9)
             : Color.red.opacity(0.85)
     }
@@ -129,7 +129,7 @@ struct HomeBalanceRow: View {
     }
 
     private var balanceColor: Color {
-        item.balanceText.lowercased().contains("owes you")
+        item.direction == .owesYou
             ? Color.green.opacity(0.9)
             : Color.red.opacity(0.85)
     }

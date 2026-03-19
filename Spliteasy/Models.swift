@@ -55,20 +55,66 @@ enum BalanceFilter {
 
     var tintColor: Color {
         switch self {
-        case .none:
-            return .gray
-        case .youOwe:
-            return .red
-        case .owesYou:
-            return .green
+        case .none: return .gray
+        case .youOwe: return .red
+        case .owesYou: return .green
         }
     }
 }
 
-struct BalanceItem: Identifiable, Hashable {
+enum BalanceDirection {
+    case youOwe
+    case owesYou
+}
+
+enum ItemKind {
+    case friend
+    case group
+}
+
+struct ExpenseEntry: Identifiable, Hashable {
     let id = UUID()
-    let name: String
-    let balanceText: String
+    let description: String
+    let amount: Double
+    let dateText: String
+}
+
+struct BalanceItem: Identifiable, Hashable {
+    let id: UUID
+    let kind: ItemKind
+    var name: String
+    var amount: Double
+    var direction: BalanceDirection
+    var participantCount: Int
+    var expenses: [ExpenseEntry]
+
+    init(
+        id: UUID = UUID(),
+        kind: ItemKind,
+        name: String,
+        amount: Double,
+        direction: BalanceDirection,
+        participantCount: Int = 2,
+        expenses: [ExpenseEntry] = []
+    ) {
+        self.id = id
+        self.kind = kind
+        self.name = name
+        self.amount = amount
+        self.direction = direction
+        self.participantCount = participantCount
+        self.expenses = expenses
+    }
+
+    var balanceText: String {
+        let formattedAmount = String(format: "%.2f", amount)
+        switch direction {
+        case .youOwe:
+            return "You owe $\(formattedAmount)"
+        case .owesYou:
+            return "owes you $\(formattedAmount)"
+        }
+    }
 }
 
 enum ActivityChartType {
@@ -90,9 +136,29 @@ struct MonthlyExpense: Identifiable, Hashable {
 }
 
 struct TransactionItem: Identifiable, Hashable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let subtitle: String
     let amount: Double
     let date: String
+    let monthKey: String
+    let category: String
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        subtitle: String,
+        amount: Double,
+        date: String,
+        monthKey: String,
+        category: String
+    ) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.amount = amount
+        self.date = date
+        self.monthKey = monthKey
+        self.category = category
+    }
 }
