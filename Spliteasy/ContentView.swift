@@ -34,7 +34,7 @@ struct ContentView: View {
             Color.gray.opacity(0.12)
                 .ignoresSafeArea()
 
-            if showPlusMenu && selectedTab != .friends && selectedTab != .activity {
+            if showPlusMenu && selectedTab != .friends && selectedTab != .activity && selectedTab != .add {
                 Color.black.opacity(0.001)
                     .ignoresSafeArea()
                     .onTapGesture {
@@ -68,7 +68,7 @@ struct ContentView: View {
                 AccountPageView()
 
             case .add:
-                SimplePageView(title: "Add")
+                AddExpensePageView(selectedTab: $selectedTab)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -77,7 +77,7 @@ struct ContentView: View {
                 selectedSection: selectedSection,
                 showActionButton: selectedTab == .friends,
                 showPlusMenu: $showPlusMenu,
-                hidePlusButton: selectedTab == .activity || selectedTab == .profile,
+                hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add,
                 actionButtonPressed: handleFriendsActionButtonTap,
                 takePicturePressed: handleTakePicture,
                 addExpensePressed: handleAddExpense
@@ -127,9 +127,9 @@ struct ContentView: View {
     }
 
     private func handleAddExpense() {
-        print("Add Expenses tapped")
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             showPlusMenu = false
+            selectedTab = .add
         }
     }
 }

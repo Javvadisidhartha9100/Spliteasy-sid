@@ -49,7 +49,18 @@ enum BalanceFilter {
         switch self {
         case .none: return "None"
         case .youOwe: return "Friends you owe"
-        case .owesYou: return "Friends owes you"
+        case .owesYou: return "Friends who owe you"
+        }
+    }
+
+    var tintColor: Color {
+        switch self {
+        case .none:
+            return .gray
+        case .youOwe:
+            return .red
+        case .owesYou:
+            return .green
         }
     }
 }

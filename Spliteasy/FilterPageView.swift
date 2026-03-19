@@ -11,52 +11,44 @@ struct FilterPageView: View {
     @Binding var selectedFilter: BalanceFilter
     @Environment(\.dismiss) private var dismiss
 
+    private let filterOptions: [BalanceFilter] = [
+        .none,
+        .youOwe,
+        .owesYou
+    ]
+
     var body: some View {
-        ZStack {
-            Color.gray.opacity(0.12)
-                .ignoresSafeArea()
-
-            VStack {
-                HStack {
-                    Spacer()
-
+        NavigationStack {
+            List {
+                ForEach(filterOptions, id: \.self) { filter in
                     Button {
+                        selectedFilter = filter
                         dismiss()
                     } label: {
-                        Text("Done")
-                            .font(.system(size: 24, weight: .bold))
-                            .italic()
-                            .foregroundColor(.black)
+                        HStack {
+                            Text(filter.title)
+                                .font(.system(size: 20))
+                                .foregroundColor(.blue)
+
+                            Spacer()
+
+                            if selectedFilter == filter {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.vertical, 10)
                     }
+                    .buttonStyle(.plain)
+                    .listRowBackground(Color.white)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-
-                Spacer()
-
-                VStack(spacing: 18) {
-                    filterButton(title: "None", value: .none)
-                    filterButton(title: "Friends you owe", value: .youOwe)
-                    filterButton(title: "Friends owes you", value: .owesYou)
-                }
-
-                Spacer()
             }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Set filter")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.fraction(1.0)])
-        .presentationDragIndicator(.hidden)
-    }
-
-    private func filterButton(title: String, value: BalanceFilter) -> some View {
-        Button {
-            selectedFilter = value
-        } label: {
-            Text(title)
-                .font(.system(size: 20, weight: .bold))
-                .italic()
-                .foregroundColor(selectedFilter == value ? Color.purple : .black)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }

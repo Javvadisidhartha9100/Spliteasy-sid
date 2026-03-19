@@ -389,4 +389,3 @@ struct ActivityDonutSlice: Shape {
         return path
     }
 }
-

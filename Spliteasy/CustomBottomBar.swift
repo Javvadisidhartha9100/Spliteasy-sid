@@ -119,7 +119,12 @@ struct CustomBottomBar: View {
                         )
                     )
                     .frame(width: 64, height: 64)
-                    .shadow(color: Color.purple.opacity(showPlusMenu ? 0.42 : 0.30), radius: 12, x: 0, y: 6)
+                    .shadow(
+                        color: Color.purple.opacity(showPlusMenu ? 0.42 : 0.30),
+                        radius: 12,
+                        x: 0,
+                        y: 6
+                    )
 
                 Image(systemName: "plus")
                     .font(.system(size: 28, weight: .medium))
@@ -132,13 +137,16 @@ struct CustomBottomBar: View {
 
     private var plusMenu: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            menuButton(title: "Take a picture", action: takePicturePressed)
-            menuButton(title: "Add Expenses", action: addExpensePressed)
+            menuButton(title: "Take a picture") {
+                takePicturePressed()
+            }
+
+            menuButton(title: "Add Expenses") {
+                addExpensePressed()
+            }
         }
         .padding(.bottom, 28)
-        
     }
-        
 
     private func menuButton(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -187,6 +195,7 @@ struct CustomBottomBar: View {
         .buttonStyle(.plain)
     }
 }
+
 #Preview {
     ContentView()
 }

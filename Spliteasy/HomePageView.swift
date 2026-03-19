@@ -82,13 +82,11 @@ struct HomePageView: View {
                 } label: {
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.gray)
-                        .frame(width: 54, height: 54)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(Color.gray.opacity(0.08))
-                        )
+                        .foregroundColor(selectedFilter.tintColor)
+                        .frame(width: 44, height: 44)
+                        .background(Color.clear)
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 14)
             .padding(.top, 14)
