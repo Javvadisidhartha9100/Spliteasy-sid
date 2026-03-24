@@ -11,7 +11,7 @@ struct ContentView: View {
     @State private var friendsData: [BalanceItem] = [
         .init(kind: .friend, name: "Friend -1", amount: 25, direction: .youOwe, participantCount: 2),
         .init(kind: .friend, name: "Friend -2", amount: 12, direction: .owesYou, participantCount: 2),
-        .init(kind: .friend, name: "Friend -3", amount: 45, direction: .youOwe, participantCount: 2),
+        .init(kind: .friend, name: "Friend -3", amount: 120, direction: .youOwe, participantCount: 2),
         .init(kind: .friend, name: "Friend -4", amount: 30, direction: .owesYou, participantCount: 2),
         .init(kind: .friend, name: "Friend -5", amount: 50, direction: .youOwe, participantCount: 2)
     ]
@@ -73,8 +73,8 @@ struct ContentView: View {
                         friendsData: filteredFriends,
                         headerTitle: "Settle Up",
                         selectedFilter: $selectedFilter,
-                        totalYouOwe: totalYouOwe,
-                        totalYouAreOwed: totalYouAreOwed,
+                        totalYouOwe: homeTotalYouOwe,
+                        totalYouAreOwed: homeTotalYouAreOwed,
                         onSelectItem: { item in
                             openExpensePage(for: item)
                         }
@@ -87,8 +87,8 @@ struct ContentView: View {
                         groupsData: filteredGroups,
                         headerTitle: "Save",
                         selectedFilter: $selectedFilter,
-                        totalYouOwe: totalYouOwe,
-                        totalYouAreOwed: totalYouAreOwed,
+                        totalYouOwe: friendsPageTotalYouOwe,
+                        totalYouAreOwed: friendsPageTotalYouAreOwed,
                         onSelectItem: { item in
                             openExpensePage(for: item)
                         }
@@ -118,7 +118,6 @@ struct ContentView: View {
                     showPlusMenu: $showPlusMenu,
                     hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add || showExpenseSelectionPage || showCreateGroupPage,
                     actionButtonPressed: handleFriendsActionButtonTap,
-                    takePicturePressed: handleTakePicture,
                     addExpensePressed: handleAddExpense
                 )
                 .padding(.horizontal, 5)
@@ -136,18 +135,34 @@ struct ContentView: View {
         }
     }
 
-    private var allItems: [BalanceItem] {
-        friendsData + groupsData
+    private var homeItems: [BalanceItem] {
+        friendsData
     }
 
-    private var totalYouOwe: Double {
-        allItems
+    private var currentFriendsPageItems: [BalanceItem] {
+        selectedSection == .friends ? friendsData : groupsData
+    }
+
+    private var homeTotalYouOwe: Double {
+        homeItems
             .filter { $0.direction == .youOwe }
             .reduce(0) { $0 + $1.amount }
     }
 
-    private var totalYouAreOwed: Double {
-        allItems
+    private var homeTotalYouAreOwed: Double {
+        homeItems
+            .filter { $0.direction == .owesYou }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var friendsPageTotalYouOwe: Double {
+        currentFriendsPageItems
+            .filter { $0.direction == .youOwe }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var friendsPageTotalYouAreOwed: Double {
+        currentFriendsPageItems
             .filter { $0.direction == .owesYou }
             .reduce(0) { $0 + $1.amount }
     }
@@ -242,6 +257,7 @@ struct ContentView: View {
             )
 
             activityTransactions.insert(transaction, at: 0)
+            selectedSection = .friends
             selectedTab = .home
             return
         }
@@ -306,13 +322,6 @@ struct ContentView: View {
             print("Add Friend tapped")
         } else {
             showCreateGroupPage = true
-        }
-    }
-
-    private func handleTakePicture() {
-        print("Take a picture tapped")
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            showPlusMenu = false
         }
     }
 

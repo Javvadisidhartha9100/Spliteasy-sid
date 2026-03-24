@@ -86,6 +86,7 @@ struct BalanceItem: Identifiable, Hashable {
     var amount: Double
     var direction: BalanceDirection
     var participantCount: Int
+    var memberIDs: [UUID]
     var expenses: [ExpenseEntry]
 
     init(
@@ -95,6 +96,7 @@ struct BalanceItem: Identifiable, Hashable {
         amount: Double,
         direction: BalanceDirection,
         participantCount: Int = 2,
+        memberIDs: [UUID] = [],
         expenses: [ExpenseEntry] = []
     ) {
         self.id = id
@@ -103,6 +105,7 @@ struct BalanceItem: Identifiable, Hashable {
         self.amount = amount
         self.direction = direction
         self.participantCount = participantCount
+        self.memberIDs = memberIDs
         self.expenses = expenses
     }
 

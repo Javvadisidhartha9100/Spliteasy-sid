@@ -14,7 +14,6 @@ struct CustomBottomBar: View {
     @Binding var showPlusMenu: Bool
     let hidePlusButton: Bool
     let actionButtonPressed: () -> Void
-    let takePicturePressed: () -> Void
     let addExpensePressed: () -> Void
 
     private let activeColor = Color(red: 0.75, green: 0.20, blue: 0.95)
@@ -58,7 +57,7 @@ struct CustomBottomBar: View {
                 } else if !hidePlusButton {
                     if showPlusMenu {
                         plusMenu
-                            .position(x: profileCenterX - 38, y: -106)
+                            .position(x: profileCenterX - 38, y: -88)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                             .zIndex(3)
                     }
@@ -137,10 +136,6 @@ struct CustomBottomBar: View {
 
     private var plusMenu: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            menuButton(title: "Take a picture") {
-                takePicturePressed()
-            }
-
             menuButton(title: "Add Expenses") {
                 addExpensePressed()
             }
@@ -195,4 +190,3 @@ struct CustomBottomBar: View {
         .buttonStyle(.plain)
     }
 }
-

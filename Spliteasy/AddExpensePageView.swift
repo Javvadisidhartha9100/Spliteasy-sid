@@ -30,8 +30,10 @@ struct AddExpensePageView: View {
                     .padding(.top, 6)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 18) {
                         nameCard
+
+                        cameraCard
 
                         inputCard(
                             icon: "bag",
@@ -139,6 +141,54 @@ struct AddExpensePageView: View {
         )
     }
 
+    private var cameraCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Receipt")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.gray)
+
+            Button {
+                print("Camera tapped")
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 16, weight: .bold))
+
+                    Text("Take a picture")
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.54, green: 0.25, blue: 0.95),
+                            Color(red: 0.43, green: 0.20, blue: 0.86)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                )
+                .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+        )
+    }
+
     private func inputCard(icon: String, placeholder: String, text: Binding<String>) -> some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -188,6 +238,7 @@ struct AddExpensePageView: View {
                 TextField("Enter amount", text: $amountText)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.black)
+                    .keyboardType(.decimalPad)
 
                 Rectangle()
                     .fill(Color.purple.opacity(0.15))
@@ -353,8 +404,5 @@ extension AddExpensePageView {
         amountText = ""
         selectedTab = .home
     }
-}
-#Preview {
-    ContentView()
 }
 
