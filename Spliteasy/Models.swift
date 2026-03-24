@@ -1,10 +1,3 @@
-//
-//  Models.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/17/26.
-//
-
 import SwiftUI
 
 enum Tab {
@@ -79,6 +72,12 @@ struct ExpenseEntry: Identifiable, Hashable {
     let dateText: String
 }
 
+struct GroupExpenseDraft: Hashable {
+    var paidBy: [String]
+    var splitWith: [String]
+    var yourNetAmount: Double
+}
+
 struct BalanceItem: Identifiable, Hashable {
     let id: UUID
     let kind: ItemKind
@@ -86,7 +85,7 @@ struct BalanceItem: Identifiable, Hashable {
     var amount: Double
     var direction: BalanceDirection
     var participantCount: Int
-    var memberIDs: [UUID]
+    var memberNames: [String]
     var expenses: [ExpenseEntry]
 
     init(
@@ -96,7 +95,7 @@ struct BalanceItem: Identifiable, Hashable {
         amount: Double,
         direction: BalanceDirection,
         participantCount: Int = 2,
-        memberIDs: [UUID] = [],
+        memberNames: [String] = [],
         expenses: [ExpenseEntry] = []
     ) {
         self.id = id
@@ -105,7 +104,7 @@ struct BalanceItem: Identifiable, Hashable {
         self.amount = amount
         self.direction = direction
         self.participantCount = participantCount
-        self.memberIDs = memberIDs
+        self.memberNames = memberNames
         self.expenses = expenses
     }
 

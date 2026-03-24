@@ -47,7 +47,7 @@ struct ActivityPageView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Activity")
-                .font(.system(size: 34, weight: .bold))
+                .font(.system(size: 32, weight: .bold))
                 .foregroundColor(Color(red: 0.05, green: 0.10, blue: 0.18))
 
             Text("All your transactions")
@@ -56,7 +56,7 @@ struct ActivityPageView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
-        .padding(.top, 6)
+        .padding(.top, -40)
     }
 
     private var chartCard: some View {
@@ -427,4 +427,8 @@ struct ActivityDonutSlice: Shape {
         )
         return path
     }
+}
+
+#Preview {
+    ContentView()
 }

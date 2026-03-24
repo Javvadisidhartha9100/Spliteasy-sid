@@ -98,16 +98,27 @@ struct FriendsPageView: View {
             Spacer()
 
             Text(title)
-                .font(.system(size: 24, weight: .bold))
-                .italic()
-                .foregroundColor(.black)
-                .padding(.trailing, 7)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.75, green: 0.30, blue: 0.97),
+                            Color(red: 0.60, green: 0.24, blue: 0.90)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
         }
         .padding(.horizontal, 20)
-        .padding(.top, -30)
-        .padding(.bottom, 6)
+        .padding(.top, -45)
+        .padding(.bottom, 0)
     }
-
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
@@ -262,4 +273,8 @@ struct FriendsPageView: View {
                 .fill(bg)
         )
     }
+}
+
+#Preview {
+    ContentView()
 }

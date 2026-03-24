@@ -4,9 +4,10 @@ struct HomePageView: View {
     let friendsData: [BalanceItem]
     let headerTitle: String
     @Binding var selectedFilter: BalanceFilter
-    let totalYouOwe: Double
-    let totalYouAreOwed: Double
+    let monthlyLimit: Double
+    let monthlySpent: Double
     let onSelectItem: (BalanceItem) -> Void
+    let onSettleUpTap: () -> Void
 
     @State private var showFilterSheet = false
     @State private var searchText = ""
@@ -19,7 +20,7 @@ struct HomePageView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
-            homeSummaryCard
+            monthlyLimitCard
                 .padding(.top, 8)
 
             ScrollView(showsIndicators: false) {
@@ -47,25 +48,26 @@ struct HomePageView: View {
 
     private var filteredSearchFriends: [BalanceItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if trimmed.isEmpty {
-            return friendsData
-        }
-
-        return friendsData.filter {
-            $0.name.localizedCaseInsensitiveContains(trimmed)
-        }
+        if trimmed.isEmpty { return friendsData }
+        return friendsData.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
     }
 
-    private var overallTitle: String {
-        let net = totalYouAreOwed - totalYouOwe
+    private var progressValue: Double {
+        guard monthlyLimit > 0 else { return 0 }
+        return min(monthlySpent / monthlyLimit, 1.0)
+    }
 
-        if net > 0 {
-            return "You are owed $\(formattedAmount(net))"
-        } else if net < 0 {
-            return "You owe $\(formattedAmount(abs(net)))"
+    private var amountLeft: Double {
+        max(monthlyLimit - monthlySpent, 0)
+    }
+
+    private var progressTint: Color {
+        if progressValue >= 1.0 {
+            return .red.opacity(0.85)
+        } else if progressValue >= 0.75 {
+            return .orange.opacity(0.85)
         } else {
-            return "You are settled up"
+            return Color(red: 0.53, green: 0.28, blue: 0.95)
         }
     }
 
@@ -77,15 +79,32 @@ struct HomePageView: View {
         HStack {
             Spacer()
 
-            Text(title)
-                .font(.system(size: 24, weight: .bold))
-                .italic()
-                .foregroundColor(.black)
-                .padding(.trailing, 7)
+            Button {
+                onSettleUpTap()
+            } label: {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.75, green: 0.30, blue: 0.97),
+                                Color(red: 0.60, green: 0.24, blue: 0.90)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: Color.purple.opacity(0.15), radius: 6, x: 0, y: 3)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
-        .padding(.top, -30)
-        .padding(.bottom, 6)
+        .padding(.top, -45)
+        .padding(.bottom, -20)
     }
 
     private var searchBar: some View {
@@ -113,26 +132,28 @@ struct HomePageView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.white)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(Color.purple.opacity(0.12), lineWidth: 1)
                 )
                 .shadow(color: Color.purple.opacity(0.06), radius: 8, x: 0, y: 4)
         )
     }
 
-    private var homeSummaryCard: some View {
+    private var monthlyLimitCard: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center) {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Overall")
+                    Text("Monthly Limit")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.gray)
 
-                    Text(overallTitle)
-                        .font(.system(size: 24, weight: .bold))
+                    Text("$\(formattedAmount(monthlyLimit))")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.black)
-                        .minimumScaleFactor(0.85)
-                        .lineLimit(1)
+
+                    Text("Spent $\(formattedAmount(monthlySpent)) this month")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color(red: 0.35, green: 0.38, blue: 0.45))
                 }
 
                 Spacer(minLength: 10)
@@ -144,34 +165,56 @@ struct HomePageView: View {
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(selectedFilter.tintColor)
                         .frame(width: 44, height: 44)
-                        .background(Color.clear)
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 14)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
 
-            HStack(spacing: 10) {
-                balancePill(
-                    text: "Owe $\(formattedAmount(totalYouOwe))",
-                    bg: Color.red.opacity(0.08),
-                    textColor: Color.red.opacity(0.85),
-                    icon: "arrow.down.right"
-                )
+            VStack(alignment: .leading, spacing: 10) {
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.12))
+                        .frame(height: 16)
 
-                balancePill(
-                    text: "Owed $\(formattedAmount(totalYouAreOwed))",
-                    bg: Color.green.opacity(0.10),
-                    textColor: Color.green.opacity(0.85),
-                    icon: "arrow.up.right"
-                )
+                    GeometryReader { geo in
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [progressTint.opacity(0.95), progressTint],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: max(16, geo.size.width * progressValue), height: 16)
+                    }
+                    .frame(height: 16)
+                }
+
+                HStack {
+                    Text("\(Int(progressValue * 100))% used")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(progressTint)
+
+                    Spacer()
+
+                    if monthlySpent <= monthlyLimit {
+                        Text("$\(formattedAmount(amountLeft)) left")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.green.opacity(0.85))
+                    } else {
+                        Text("Over by $\(formattedAmount(monthlySpent - monthlyLimit))")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.red.opacity(0.85))
+                    }
+                }
             }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 14)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
         }
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 28)
                 .fill(Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 28)
@@ -181,24 +224,9 @@ struct HomePageView: View {
         )
         .padding(.horizontal, 12)
     }
-
-    private func balancePill(text: String, bg: Color, textColor: Color, icon: String) -> some View {
-        HStack(spacing: 7) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-
-            Text(text)
-                .font(.system(size: 13, weight: .bold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-        }
-        .foregroundColor(textColor)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity)
-        .background(
-            Capsule()
-                .fill(bg)
-        )
-    }
 }
+
+#Preview {
+    ContentView()
+}
+

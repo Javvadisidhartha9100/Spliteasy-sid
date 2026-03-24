@@ -1,14 +1,8 @@
-//
-//  CreateGroupPageView.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/19/26.
-//
-
 import SwiftUI
 
 struct CreateGroupPageView: View {
     @Binding var selectedTab: Tab
+    @Binding var showCreateGroupPage: Bool
     let availableFriends: [BalanceItem]
     let onSaveGroup: (String, GroupType, [BalanceItem]) -> Void
 
@@ -39,7 +33,6 @@ struct CreateGroupPageView: View {
                         .padding(.top, 8)
 
                     groupNameCard
-
                     addMemberCard
 
                     if showFriendsList {
@@ -60,6 +53,7 @@ struct CreateGroupPageView: View {
         HStack {
             Button {
                 withAnimation(.easeInOut(duration: 0.25)) {
+                    showCreateGroupPage = false
                     selectedTab = .friends
                 }
             } label: {
@@ -105,8 +99,10 @@ struct CreateGroupPageView: View {
                     )
                     .clipShape(Capsule())
                     .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .opacity(canSaveGroup ? 1.0 : 0.65)
             }
             .buttonStyle(.plain)
+            .disabled(!canSaveGroup)
         }
     }
 
@@ -257,18 +253,12 @@ struct CreateGroupPageView: View {
                             Text(type.title)
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(selectedGroupType == type ? .white : .black)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 82)
                         .background(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(
-                                    selectedGroupType == type
-                                    ? Color(red: 0.53, green: 0.28, blue: 0.95)
-                                    : Color.white
-                                )
+                                .fill(selectedGroupType == type ? Color(red: 0.53, green: 0.28, blue: 0.95) : Color.white)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                                         .stroke(cardBorder, lineWidth: 1)
@@ -282,6 +272,14 @@ struct CreateGroupPageView: View {
         }
     }
 
+    private var trimmedGroupName: String {
+        groupName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSaveGroup: Bool {
+        !trimmedGroupName.isEmpty && !selectedFriendIDs.isEmpty
+    }
+
     private func toggleFriend(_ id: UUID) {
         if selectedFriendIDs.contains(id) {
             selectedFriendIDs.remove(id)
@@ -291,17 +289,11 @@ struct CreateGroupPageView: View {
     }
 
     private func saveGroup() {
-        let trimmedName = groupName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
-
+        guard canSaveGroup else { return }
         let selectedFriends = availableFriends.filter { selectedFriendIDs.contains($0.id) }
-        guard !selectedFriends.isEmpty else { return }
-
-        onSaveGroup(trimmedName, selectedGroupType, selectedFriends)
-
-        withAnimation(.easeInOut(duration: 0.25)) {
-            selectedTab = .friends
-        }
+        onSaveGroup(trimmedGroupName, selectedGroupType, selectedFriends)
+        showCreateGroupPage = false
+        selectedTab = .friends
     }
 
     private func avatarColor(for item: BalanceItem) -> Color {

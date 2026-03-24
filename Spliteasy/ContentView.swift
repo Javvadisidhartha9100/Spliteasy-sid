@@ -7,24 +7,32 @@ struct ContentView: View {
     @State private var selectedFilter: BalanceFilter = .none
     @State private var showExpenseSelectionPage = false
     @State private var showCreateGroupPage = false
+    @State private var showAddFriendPage = false
+    @State private var showFriendDetailPage = false
+    @State private var showSettleUpSelectionPage = false
+    @State private var showSettleUpPage = false
+    @State private var settleUpReturnToFriendDetail = false
+    @State private var monthlyLimit: Double = 2000.00
+
+    @State private var selectedFriendDetail: BalanceItem?
+    @State private var selectedExpenseTarget: BalanceItem?
+    @State private var selectedSettleTarget: BalanceItem?
 
     @State private var friendsData: [BalanceItem] = [
         .init(kind: .friend, name: "Friend -1", amount: 25, direction: .youOwe, participantCount: 2),
         .init(kind: .friend, name: "Friend -2", amount: 12, direction: .owesYou, participantCount: 2),
-        .init(kind: .friend, name: "Friend -3", amount: 120, direction: .youOwe, participantCount: 2),
+        .init(kind: .friend, name: "Friend -3", amount: 45, direction: .youOwe, participantCount: 2),
         .init(kind: .friend, name: "Friend -4", amount: 30, direction: .owesYou, participantCount: 2),
         .init(kind: .friend, name: "Friend -5", amount: 50, direction: .youOwe, participantCount: 2)
     ]
 
     @State private var groupsData: [BalanceItem] = [
-        .init(kind: .group, name: "Group -1", amount: 12, direction: .owesYou, participantCount: 3),
-        .init(kind: .group, name: "Group -2", amount: 45, direction: .youOwe, participantCount: 4),
-        .init(kind: .group, name: "Group -3", amount: 30, direction: .owesYou, participantCount: 5),
-        .init(kind: .group, name: "Group -4", amount: 50, direction: .youOwe, participantCount: 3),
-        .init(kind: .group, name: "Group -5", amount: 25, direction: .youOwe, participantCount: 4)
+        .init(kind: .group, name: "Group -1", amount: 12, direction: .owesYou, participantCount: 3, memberNames: ["Friend -1", "Friend -2"]),
+        .init(kind: .group, name: "Group -2", amount: 45, direction: .youOwe, participantCount: 4, memberNames: ["Friend -2", "Friend -3", "Friend -4"]),
+        .init(kind: .group, name: "Group -3", amount: 30, direction: .owesYou, participantCount: 5, memberNames: ["Friend -1", "Friend -3", "Friend -4", "Friend -5"]),
+        .init(kind: .group, name: "Group -4", amount: 50, direction: .youOwe, participantCount: 3, memberNames: ["Friend -2", "Friend -5"]),
+        .init(kind: .group, name: "Group -5", amount: 25, direction: .youOwe, participantCount: 4, memberNames: ["Friend -1", "Friend -4", "Friend -5"])
     ]
-
-    @State private var selectedExpenseTarget: BalanceItem?
 
     @State private var activityTransactions: [TransactionItem] = [
         .init(title: "Trip to NYC", subtitle: "You paid · 3 people", amount: 4000.00, date: "Mar 16", monthKey: "2026-03", category: "Travel"),
@@ -40,19 +48,49 @@ struct ContentView: View {
             Color.gray.opacity(0.12)
                 .ignoresSafeArea()
 
-            if showPlusMenu && !showExpenseSelectionPage && !showCreateGroupPage && selectedTab != .friends && selectedTab != .activity && selectedTab != .add {
-                Color.black.opacity(0.001)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            showPlusMenu = false
-                        }
+            if showSettleUpPage, let friend = selectedSettleTarget {
+                SettleUpPageView(
+                    friend: latestFriendVersion(for: friend),
+                    onBack: handleSettleUpBack,
+                    onSave: settleUpFriend
+                )
+            } else if showSettleUpSelectionPage {
+                SettleUpSelectionPageView(
+                    friends: filteredFriends,
+                    selectedTab: $selectedTab,
+                    showSettleUpSelectionPage: $showSettleUpSelectionPage,
+                    onSelectFriend: { friend in
+                        selectedSettleTarget = friend
+                        showSettleUpSelectionPage = false
+                        showSettleUpPage = true
+                        settleUpReturnToFriendDetail = false
                     }
-            }
-
-            if showCreateGroupPage {
+                )
+            } else if showFriendDetailPage, let friend = selectedFriendDetail {
+                FriendDetailPageView(
+                    friend: latestFriendVersion(for: friend),
+                    selectedTab: $selectedTab,
+                    showFriendDetailPage: $showFriendDetailPage,
+                    onAddExpense: { item in
+                        openExpensePage(for: item)
+                    },
+                    onSettleUp: { item in
+                        selectedSettleTarget = item
+                        showFriendDetailPage = false
+                        showSettleUpPage = true
+                        settleUpReturnToFriendDetail = true
+                    }
+                )
+            } else if showAddFriendPage {
+                AddFriendPageView(
+                    selectedTab: $selectedTab,
+                    showAddFriendPage: $showAddFriendPage,
+                    onSaveFriend: saveNewFriend
+                )
+            } else if showCreateGroupPage {
                 CreateGroupPageView(
                     selectedTab: $selectedTab,
+                    showCreateGroupPage: $showCreateGroupPage,
                     availableFriends: friendsData,
                     onSaveGroup: saveNewGroup
                 )
@@ -73,10 +111,14 @@ struct ContentView: View {
                         friendsData: filteredFriends,
                         headerTitle: "Settle Up",
                         selectedFilter: $selectedFilter,
-                        totalYouOwe: homeTotalYouOwe,
-                        totalYouAreOwed: homeTotalYouAreOwed,
+                        monthlyLimit: monthlyLimit,
+                        monthlySpent: currentMonthSpent,
                         onSelectItem: { item in
-                            openExpensePage(for: item)
+                            openFriendDetailPage(for: item)
+                        },
+                        onSettleUpTap: {
+                            showSettleUpSelectionPage = true
+                            selectedTab = .home
                         }
                     )
 
@@ -90,7 +132,11 @@ struct ContentView: View {
                         totalYouOwe: friendsPageTotalYouOwe,
                         totalYouAreOwed: friendsPageTotalYouAreOwed,
                         onSelectItem: { item in
-                            openExpensePage(for: item)
+                            if item.kind == .friend {
+                                openFriendDetailPage(for: item)
+                            } else {
+                                openExpensePage(for: item)
+                            }
                         }
                     )
 
@@ -110,13 +156,13 @@ struct ContentView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            if !showCreateGroupPage {
+            if !showCreateGroupPage && !showAddFriendPage && !showFriendDetailPage && !showSettleUpSelectionPage && !showSettleUpPage {
                 CustomBottomBar(
                     selectedTab: $selectedTab,
                     selectedSection: selectedSection,
-                    showActionButton: selectedTab == .friends && !showExpenseSelectionPage && !showCreateGroupPage,
+                    showActionButton: selectedTab == .friends && !showExpenseSelectionPage && !showCreateGroupPage && !showAddFriendPage,
                     showPlusMenu: $showPlusMenu,
-                    hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add || showExpenseSelectionPage || showCreateGroupPage,
+                    hidePlusButton: selectedTab == .activity || selectedTab == .profile || selectedTab == .add || showExpenseSelectionPage || showCreateGroupPage || showAddFriendPage || showFriendDetailPage || showSettleUpSelectionPage || showSettleUpPage,
                     actionButtonPressed: handleFriendsActionButtonTap,
                     addExpensePressed: handleAddExpense
                 )
@@ -124,47 +170,31 @@ struct ContentView: View {
                 .padding(.bottom, -145)
             }
         }
-        .onChange(of: selectedTab) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                showPlusMenu = false
-            }
-
-            if selectedTab != .friends {
-                showCreateGroupPage = false
-            }
-        }
     }
 
-    private var homeItems: [BalanceItem] {
-        friendsData
+    private var currentMonthSpent: Double {
+        let currentMonthKey = monthKey(for: Date())
+        return activityTransactions
+            .filter { $0.monthKey == currentMonthKey }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private func monthKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter.string(from: date)
     }
 
     private var currentFriendsPageItems: [BalanceItem] {
         selectedSection == .friends ? friendsData : groupsData
     }
 
-    private var homeTotalYouOwe: Double {
-        homeItems
-            .filter { $0.direction == .youOwe }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var homeTotalYouAreOwed: Double {
-        homeItems
-            .filter { $0.direction == .owesYou }
-            .reduce(0) { $0 + $1.amount }
-    }
-
     private var friendsPageTotalYouOwe: Double {
-        currentFriendsPageItems
-            .filter { $0.direction == .youOwe }
-            .reduce(0) { $0 + $1.amount }
+        currentFriendsPageItems.filter { $0.direction == .youOwe }.reduce(0) { $0 + $1.amount }
     }
 
     private var friendsPageTotalYouAreOwed: Double {
-        currentFriendsPageItems
-            .filter { $0.direction == .owesYou }
-            .reduce(0) { $0 + $1.amount }
+        currentFriendsPageItems.filter { $0.direction == .owesYou }.reduce(0) { $0 + $1.amount }
     }
 
     private var filteredFriends: [BalanceItem] {
@@ -185,48 +215,147 @@ struct ContentView: View {
 
     private func applyFilter(to items: [BalanceItem]) -> [BalanceItem] {
         switch selectedFilter {
-        case .none:
-            return items
-        case .youOwe:
-            return items.filter { $0.direction == .youOwe }
-        case .owesYou:
-            return items.filter { $0.direction == .owesYou }
+        case .none: return items
+        case .youOwe: return items.filter { $0.direction == .youOwe }
+        case .owesYou: return items.filter { $0.direction == .owesYou }
         }
+    }
+
+    private func latestFriendVersion(for friend: BalanceItem) -> BalanceItem {
+        friendsData.first(where: { $0.id == friend.id }) ?? friend
+    }
+
+    private func openFriendDetailPage(for item: BalanceItem) {
+        selectedFriendDetail = item
+        showFriendDetailPage = true
+        showSettleUpSelectionPage = false
+        showSettleUpPage = false
+        selectedTab = .friends
+        selectedSection = .friends
     }
 
     private func openExpensePage(for item: BalanceItem) {
         selectedExpenseTarget = item
-        showExpenseSelectionPage = false
-        showCreateGroupPage = false
+        showFriendDetailPage = false
+        showSettleUpSelectionPage = false
+        showSettleUpPage = false
         selectedTab = .add
+        selectedSection = item.kind == .group ? .groups : .friends
+    }
 
-        if item.kind == .group {
-            selectedSection = .groups
+    private func handleSettleUpBack() {
+        if settleUpReturnToFriendDetail, let friend = selectedSettleTarget {
+            selectedFriendDetail = latestFriendVersion(for: friend)
+            showSettleUpPage = false
+            showFriendDetailPage = true
+            selectedTab = .friends
+        } else {
+            showSettleUpPage = false
+            showSettleUpSelectionPage = true
+            selectedTab = .home
         }
     }
 
-    private func saveNewGroup(name: String, type: GroupType, members: [BalanceItem]) {
-        let participantCount = members.count + 1
+    private func saveNewFriend(name: String, contact: String) {
+        let newFriend = BalanceItem(
+            kind: .friend,
+            name: name,
+            amount: 0,
+            direction: .owesYou,
+            participantCount: 2,
+            expenses: contact.isEmpty ? [] : [
+                ExpenseEntry(description: contact, amount: 0, dateText: "Contact")
+            ]
+        )
+        friendsData.insert(newFriend, at: 0)
+        selectedSection = .friends
+        showAddFriendPage = false
+        selectedTab = .friends
+    }
 
+    private func saveNewGroup(name: String, type: GroupType, members: [BalanceItem]) {
         let newGroup = BalanceItem(
             kind: .group,
             name: name,
             amount: 0,
             direction: .owesYou,
-            participantCount: participantCount,
+            participantCount: members.count + 1,
+            memberNames: members.map { $0.name },
             expenses: []
         )
-
         groupsData.insert(newGroup, at: 0)
-
         selectedSection = .groups
         showCreateGroupPage = false
         selectedTab = .friends
     }
 
-    private func saveExpense(itemID: UUID, description: String, amount: Double, direction: BalanceDirection) {
-        let now = Date()
+    private func signedBalance(for item: BalanceItem) -> Double {
+        item.direction == .owesYou ? item.amount : -item.amount
+    }
 
+    private func applyNetAmount(_ net: Double, to item: inout BalanceItem) {
+        let updated = signedBalance(for: item) + net
+        item.amount = abs(updated)
+        item.direction = updated >= 0 ? .owesYou : .youOwe
+    }
+
+    private func settleUpFriend(itemID: UUID, amount: Double, method: String) {
+        guard let index = friendsData.firstIndex(where: { $0.id == itemID }) else { return }
+
+        let currentSigned = signedBalance(for: friendsData[index])
+        let updatedSigned = currentSigned > 0 ? currentSigned - amount : currentSigned + amount
+
+        friendsData[index].amount = abs(updatedSigned)
+        friendsData[index].direction = updatedSigned >= 0 ? .owesYou : .youOwe
+        friendsData[index].expenses.insert(
+            ExpenseEntry(
+                description: "Settle up via \(method)",
+                amount: amount,
+                dateText: currentDayText()
+            ),
+            at: 0
+        )
+
+        selectedSettleTarget = friendsData[index]
+        selectedFriendDetail = friendsData[index]
+
+        activityTransactions.insert(
+            TransactionItem(
+                title: "Settle up with \(friendsData[index].name)",
+                subtitle: method,
+                amount: amount,
+                date: currentDayText(),
+                monthKey: monthKey(for: Date()),
+                category: "Other"
+            ),
+            at: 0
+        )
+
+        if settleUpReturnToFriendDetail {
+            showSettleUpPage = false
+            showFriendDetailPage = true
+            selectedTab = .friends
+        } else {
+            showSettleUpPage = false
+            showSettleUpSelectionPage = false
+            selectedTab = .home
+        }
+    }
+
+    private func currentDayText() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: Date())
+    }
+
+    private func saveExpense(
+        itemID: UUID,
+        description: String,
+        amount: Double,
+        direction: BalanceDirection,
+        groupDraft: GroupExpenseDraft?
+    ) {
+        let now = Date()
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "MMM d"
 
@@ -235,17 +364,17 @@ struct ContentView: View {
 
         if let friendIndex = friendsData.firstIndex(where: { $0.id == itemID }) {
             let friend = friendsData[friendIndex]
-
             let newExpense = ExpenseEntry(
                 description: description,
                 amount: amount,
                 dateText: dayFormatter.string(from: now)
             )
 
-            friendsData[friendIndex].amount += amount
-            friendsData[friendIndex].direction = direction
-            friendsData[friendIndex].expenses.append(newExpense)
+            let net = direction == .owesYou ? amount : -amount
+            applyNetAmount(net, to: &friendsData[friendIndex])
+            friendsData[friendIndex].expenses.insert(newExpense, at: 0)
             selectedExpenseTarget = friendsData[friendIndex]
+            selectedFriendDetail = friendsData[friendIndex]
 
             let transaction = TransactionItem(
                 title: description,
@@ -255,30 +384,33 @@ struct ContentView: View {
                 monthKey: monthFormatter.string(from: now),
                 category: inferCategory(from: description)
             )
-
             activityTransactions.insert(transaction, at: 0)
+            showFriendDetailPage = true
+            selectedTab = .friends
             selectedSection = .friends
-            selectedTab = .home
             return
         }
 
         if let groupIndex = groupsData.firstIndex(where: { $0.id == itemID }) {
-            let group = groupsData[groupIndex]
-
             let newExpense = ExpenseEntry(
                 description: description,
                 amount: amount,
                 dateText: dayFormatter.string(from: now)
             )
 
-            groupsData[groupIndex].amount += amount
-            groupsData[groupIndex].direction = direction
-            groupsData[groupIndex].expenses.append(newExpense)
+            let net = groupDraft?.yourNetAmount ?? (direction == .owesYou ? amount : -amount)
+            applyNetAmount(net, to: &groupsData[groupIndex])
+            groupsData[groupIndex].expenses.insert(newExpense, at: 0)
             selectedExpenseTarget = groupsData[groupIndex]
 
-            let subtitleText = direction == .owesYou
-                ? "You paid · \(group.participantCount) people"
-                : "\(group.participantCount) people paid"
+            let subtitleText: String
+            if let groupDraft {
+                subtitleText = "Paid by \(groupDraft.paidBy.joined(separator: ", ")) · split with \(groupDraft.splitWith.count)"
+            } else {
+                subtitleText = direction == .owesYou
+                    ? "You paid · \(groupsData[groupIndex].participantCount) people"
+                    : "\(groupsData[groupIndex].participantCount) people paid"
+            }
 
             let transaction = TransactionItem(
                 title: description,
@@ -288,7 +420,6 @@ struct ContentView: View {
                 monthKey: monthFormatter.string(from: now),
                 category: inferCategory(from: description)
             )
-
             activityTransactions.insert(transaction, at: 0)
             selectedSection = .groups
             selectedTab = .friends
@@ -297,29 +428,16 @@ struct ContentView: View {
 
     private func inferCategory(from description: String) -> String {
         let text = description.lowercased()
-
-        if text.contains("food") || text.contains("dinner") || text.contains("lunch") || text.contains("breakfast") || text.contains("restaurant") || text.contains("grocer") || text.contains("cafe") || text.contains("coffee") {
-            return "Food"
-        }
-
-        if text.contains("uber") || text.contains("lyft") || text.contains("taxi") || text.contains("bus") || text.contains("train") || text.contains("flight") || text.contains("airport") || text.contains("gas") {
-            return "Transport"
-        }
-
-        if text.contains("shop") || text.contains("mall") || text.contains("walmart") || text.contains("target") || text.contains("amazon") || text.contains("clothes") {
-            return "Shopping"
-        }
-
-        if text.contains("trip") || text.contains("hotel") || text.contains("travel") || text.contains("vacation") {
-            return "Travel"
-        }
-
+        if text.contains("food") || text.contains("dinner") || text.contains("lunch") || text.contains("breakfast") || text.contains("restaurant") || text.contains("grocer") || text.contains("cafe") || text.contains("coffee") { return "Food" }
+        if text.contains("uber") || text.contains("lyft") || text.contains("taxi") || text.contains("bus") || text.contains("train") || text.contains("flight") || text.contains("airport") || text.contains("gas") { return "Transport" }
+        if text.contains("shop") || text.contains("mall") || text.contains("walmart") || text.contains("target") || text.contains("amazon") || text.contains("clothes") { return "Shopping" }
+        if text.contains("trip") || text.contains("hotel") || text.contains("travel") || text.contains("vacation") { return "Travel" }
         return "Other"
     }
 
     private func handleFriendsActionButtonTap() {
         if selectedSection == .friends {
-            print("Add Friend tapped")
+            showAddFriendPage = true
         } else {
             showCreateGroupPage = true
         }
@@ -329,6 +447,10 @@ struct ContentView: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             showPlusMenu = false
             showCreateGroupPage = false
+            showAddFriendPage = false
+            showFriendDetailPage = false
+            showSettleUpSelectionPage = false
+            showSettleUpPage = false
             showExpenseSelectionPage = true
         }
     }
