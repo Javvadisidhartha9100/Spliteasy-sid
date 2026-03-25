@@ -361,7 +361,7 @@ struct CreateGroupPageView: View {
     }
 
     private func avatarColor(for item: BalanceItem) -> Color {
-        let colors: [Color] = [.purple, .blue, .green, .pink]
+        let colors: [Color] = [AppPalette.accentMid, AppPalette.accentStart, .green, .pink]
         return colors[abs(item.name.hashValue) % colors.count]
     }
 }

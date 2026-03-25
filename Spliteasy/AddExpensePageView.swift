@@ -146,6 +146,7 @@ struct AddExpensePageView: View {
                 }
             }
             .buttonStyle(.plain)
+            .padding(.top, -45)
 
             Spacer()
 
@@ -168,11 +169,12 @@ struct AddExpensePageView: View {
                         )
                     )
                     .clipShape(Capsule())
-                    .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
                     .opacity(canSaveExpense ? 1 : 0.65)
             }
             .buttonStyle(.plain)
             .disabled(!canSaveExpense)
+            .padding(.top, -45)
         }
     }
 
@@ -231,7 +233,7 @@ struct AddExpensePageView: View {
                     )
                 )
                 .clipShape(Capsule())
-                .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
             }
             .buttonStyle(.plain)
         }
@@ -252,7 +254,7 @@ struct AddExpensePageView: View {
     private func inputCard(icon: String, placeholder: String, text: Binding<String>) -> some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.purple.opacity(0.10))
+                .fill(AppPalette.accentMid.opacity(0.10))
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: icon)
@@ -286,7 +288,7 @@ struct AddExpensePageView: View {
     private var amountCard: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.purple.opacity(0.10))
+                .fill(AppPalette.accentMid.opacity(0.10))
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "dollarsign.square.fill")
@@ -345,7 +347,7 @@ struct AddExpensePageView: View {
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .shadow(color: Color.purple.opacity(0.18), radius: 10, x: 0, y: 5)
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 10, x: 0, y: 5)
             }
             .buttonStyle(.plain)
 
@@ -394,7 +396,7 @@ struct AddExpensePageView: View {
                         .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(Color.purple.opacity(0.08))
+                        .background(AppPalette.accentMid.opacity(0.08))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -412,7 +414,7 @@ struct AddExpensePageView: View {
                         .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(Color.purple.opacity(0.08))
+                        .background(AppPalette.accentMid.opacity(0.08))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -454,7 +456,7 @@ struct AddExpensePageView: View {
                         .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.purple.opacity(0.08))
+                        .background(AppPalette.accentMid.opacity(0.08))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)

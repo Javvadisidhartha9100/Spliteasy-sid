@@ -14,8 +14,8 @@ import SwiftUI
 
 enum AppPalette {
     static let backgroundTop = Color(
-        light: Color(red: 0.96, green: 0.95, blue: 1.0),
-        dark: Color(red: 0.08, green: 0.08, blue: 0.11)
+        light: Color(red: 0.92, green: 0.98, blue: 1.00),
+        dark: Color(red: 0.05, green: 0.09, blue: 0.13)
     )
 
     static let backgroundBottom = Color(
@@ -34,7 +34,7 @@ enum AppPalette {
     )
 
     static let border = Color(
-        light: Color.purple.opacity(0.12),
+        light: Color(red: 0.08, green: 0.68, blue: 1.00).opacity(0.14),
         dark: Color.white.opacity(0.08)
     )
 
@@ -49,8 +49,8 @@ enum AppPalette {
     )
 
     static let rowIconBg = Color(
-        light: Color(red: 0.91, green: 0.88, blue: 0.98),
-        dark: Color(red: 0.22, green: 0.18, blue: 0.30)
+        light: Color(red: 0.88, green: 0.96, blue: 1.00),
+        dark: Color(red: 0.10, green: 0.20, blue: 0.28)
     )
 
     static let searchField = Color(
@@ -63,9 +63,9 @@ enum AppPalette {
         dark: Color.white.opacity(0.06)
     )
 
-    static let accentStart = Color(red: 0.75, green: 0.30, blue: 0.97)
-    static let accentEnd = Color(red: 0.60, green: 0.24, blue: 0.90)
-    static let accentMid = Color(red: 0.53, green: 0.28, blue: 0.95)
+    static let accentStart = Color(red: 0.08, green: 0.68, blue: 1.00)
+    static let accentEnd = Color(red: 0.04, green: 0.56, blue: 0.93)
+    static let accentMid = Color(red: 0.08, green: 0.68, blue: 1.00)
 }
 
 extension Color {

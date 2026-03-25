@@ -174,7 +174,7 @@ struct ContentView: View {
                             selectedSection: $selectedSection,
                             friendsData: filteredFriends,
                             groupsData: filteredGroups,
-                            headerTitle: "Save",
+                            headerTitle: "Settle Up",
                             selectedFilter: $selectedFilter,
                             totalYouOwe: friendsPageTotalYouOwe,
                             totalYouAreOwed: friendsPageTotalYouAreOwed,
@@ -184,6 +184,16 @@ struct ContentView: View {
                                 } else {
                                     openExpensePage(for: item)
                                 }
+                            },
+                            onSettleUpTap: {
+                                showFriendDetailPage = false
+                                showExpenseSelectionPage = false
+                                showCreateGroupPage = false
+                                showAddFriendPage = false
+                                showSettleUpPage = false
+                                showSettleUpSelectionPage = true
+                                settleUpReturnToFriendDetail = false
+                                selectedTab = .friends
                             },
                             showThemeMenu: $showThemeMenu
                         )

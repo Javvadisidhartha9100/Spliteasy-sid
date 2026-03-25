@@ -54,7 +54,7 @@ struct BalanceRow: View {
     }
 
     private var avatarColor: Color {
-        let colors: [Color] = [.purple, .blue, .green, .pink]
+        let colors: [Color] = [AppPalette.accentMid, AppPalette.accentStart, .green, .pink]
         return colors[abs(item.name.hashValue) % colors.count]
     }
 }
@@ -106,7 +106,7 @@ struct HomeBalanceRow: View {
     }
 
     private var avatarColor: Color {
-        let colors: [Color] = [.pink, .purple, .green, .blue]
+        let colors: [Color] = [.pink, AppPalette.accentMid, .green, AppPalette.accentStart]
         return colors[abs(item.name.hashValue) % colors.count]
     }
 }

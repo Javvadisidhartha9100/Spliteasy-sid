@@ -123,7 +123,7 @@ struct CustomBottomBar: View {
                     )
                     .frame(width: 64, height: 64)
                     .shadow(
-                        color: Color.purple.opacity(showPlusMenu ? 0.42 : 0.30),
+                        color: AppPalette.accentMid.opacity(showPlusMenu ? 0.42 : 0.30),
                         radius: 12,
                         x: 0,
                         y: 6
@@ -163,7 +163,7 @@ struct CustomBottomBar: View {
                                 endPoint: .bottom
                             )
                         )
-                        .shadow(color: Color.purple.opacity(0.20), radius: 8, x: 0, y: 4)
+                        .shadow(color: AppPalette.accentMid.opacity(0.20), radius: 8, x: 0, y: 4)
                 )
         }
         .buttonStyle(.plain)

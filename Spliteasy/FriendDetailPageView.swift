@@ -74,6 +74,7 @@ struct FriendDetailPageView: View {
                 }
             }
             .buttonStyle(.plain)
+            .padding(.top, -65)
 
             Spacer()
 

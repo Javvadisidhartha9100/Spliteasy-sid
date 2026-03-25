@@ -55,7 +55,7 @@ struct RecentSelectionPageView: View {
                     .foregroundColor(AppPalette.primaryText)
             }
             .buttonStyle(.plain)
-            .padding(.top, -50) 
+            .padding(.top, -50)
 
             Spacer()
 
@@ -141,7 +141,7 @@ struct RecentSelectionPageView: View {
     }
 
     private func avatarColor(for item: BalanceItem) -> Color {
-        let colors: [Color] = [.purple, .blue, .green, .pink]
+        let colors: [Color] = [AppPalette.accentMid, AppPalette.accentStart, .green, .pink]
         return colors[abs(item.name.hashValue) % colors.count]
     }
 }

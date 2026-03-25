@@ -9,6 +9,7 @@ struct FriendsPageView: View {
     let totalYouOwe: Double
     let totalYouAreOwed: Double
     let onSelectItem: (BalanceItem) -> Void
+    let onSettleUpTap: () -> Void
     @Binding var showThemeMenu: Bool
 
     @State private var showFilterSheet = false
@@ -101,20 +102,25 @@ struct FriendsPageView: View {
 
             Spacer()
 
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
-                .background(
-                    LinearGradient(
-                        colors: [AppPalette.accentStart, AppPalette.accentEnd],
-                        startPoint: .leading,
-                        endPoint: .trailing
+            Button {
+                onSettleUpTap()
+            } label: {
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
                     )
-                )
-                .clipShape(Capsule())
-                .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .clipShape(Capsule())
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.top, -45)

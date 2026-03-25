@@ -105,7 +105,7 @@ struct HomePageView: View {
                         )
                     )
                     .clipShape(Capsule())
-                    .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
             }
             .buttonStyle(.plain)
         }
