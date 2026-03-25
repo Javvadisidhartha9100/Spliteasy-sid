@@ -5,6 +5,11 @@
 //  Created by SIDHARTHA JAVVADI on 3/24/26.
 //
 
+//
+//  AppPalette.swift
+//  Spliteasy
+//
+
 import SwiftUI
 
 enum AppPalette {
@@ -65,9 +70,18 @@ enum AppPalette {
 
 extension Color {
     init(light: Color, dark: Color) {
+        #if os(iOS)
         self = Color(UIColor { trait in
             trait.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
         })
+        #elseif os(macOS)
+        self = Color(NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return NSColor(isDark ? dark : light)
+        })
+        #else
+        self = light
+        #endif
     }
 }
 

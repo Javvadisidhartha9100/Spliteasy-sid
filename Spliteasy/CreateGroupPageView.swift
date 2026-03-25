@@ -10,13 +10,19 @@ struct CreateGroupPageView: View {
     @State private var selectedGroupType: GroupType = .trip
     @State private var showFriendsList = false
     @State private var selectedFriendIDs: Set<UUID> = []
+    @State private var memberSearchText: String = ""
 
+    private let cardBorder = AppPalette.border
+    private let cardShadow = Color.black.opacity(0.08)
     private let iconTint = AppPalette.accentMid
 
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                colors: [
+                    AppPalette.backgroundTop,
+                    AppPalette.backgroundBottom
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -56,7 +62,7 @@ struct CreateGroupPageView: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(AppPalette.card)
                         .frame(width: 46, height: 46)
-                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+                        .shadow(color: cardShadow, radius: 8, x: 0, y: 4)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
@@ -64,7 +70,7 @@ struct CreateGroupPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -65)
+            .padding(.top, -60)
 
             Spacer()
 
@@ -85,18 +91,21 @@ struct CreateGroupPageView: View {
                     .padding(.vertical, 12)
                     .background(
                         LinearGradient(
-                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                            colors: [
+                                AppPalette.accentStart,
+                                AppPalette.accentEnd
+                            ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .clipShape(Capsule())
-                    .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
                     .opacity(canSaveGroup ? 1.0 : 0.65)
             }
             .buttonStyle(.plain)
             .disabled(!canSaveGroup)
-            .padding(.top, -65)
+            .padding(.top, -60)
         }
     }
 
@@ -121,9 +130,9 @@ struct CreateGroupPageView: View {
                 .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(AppPalette.border, lineWidth: 1)
+                        .stroke(cardBorder, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
+                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
         )
     }
 
@@ -131,6 +140,9 @@ struct CreateGroupPageView: View {
         Button {
             withAnimation(.easeInOut(duration: 0.25)) {
                 showFriendsList.toggle()
+                if !showFriendsList {
+                    memberSearchText = ""
+                }
             }
         } label: {
             HStack(spacing: 14) {
@@ -164,9 +176,9 @@ struct CreateGroupPageView: View {
                     .fill(AppPalette.card)
                     .overlay(
                         RoundedRectangle(cornerRadius: 22)
-                            .stroke(AppPalette.border, lineWidth: 1)
+                            .stroke(cardBorder, lineWidth: 1)
                     )
-                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
+                    .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
             )
         }
         .buttonStyle(.plain)
@@ -174,45 +186,64 @@ struct CreateGroupPageView: View {
 
     private var friendsSelectionCard: some View {
         VStack(spacing: 0) {
-            ForEach(availableFriends) { friend in
-                Button {
-                    toggleFriend(friend.id)
-                } label: {
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(avatarColor(for: friend).opacity(0.22))
-                            .frame(width: 46, height: 46)
-                            .overlay(
-                                Text(String(friend.name.prefix(1)))
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(avatarColor(for: friend))
-                            )
+            memberSearchBar
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(friend.name)
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(AppPalette.primaryText)
+            if filteredFriends.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(AppPalette.secondaryText)
 
-                            Text("Friend")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(AppPalette.secondaryText)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: selectedFriendIDs.contains(friend.id) ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(selectedFriendIDs.contains(friend.id) ? iconTint : AppPalette.secondaryText.opacity(0.5))
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    Text("No friends found")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppPalette.secondaryText)
                 }
-                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 28)
+            } else {
+                ForEach(filteredFriends) { friend in
+                    Button {
+                        toggleFriend(friend.id)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(avatarColor(for: friend).opacity(0.22))
+                                .frame(width: 46, height: 46)
+                                .overlay(
+                                    Text(String(friend.name.prefix(1)))
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(avatarColor(for: friend))
+                                )
 
-                if friend.id != availableFriends.last?.id {
-                    Divider()
-                        .opacity(0.18)
-                        .padding(.leading, 74)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(friend.name)
+                                    .font(.system(size: 17, weight: .bold))
+                                    .foregroundColor(AppPalette.primaryText)
+
+                                Text("Friend")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(AppPalette.secondaryText)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: selectedFriendIDs.contains(friend.id) ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundColor(selectedFriendIDs.contains(friend.id) ? iconTint : AppPalette.secondaryText.opacity(0.5))
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.plain)
+
+                    if friend.id != filteredFriends.last?.id {
+                        Divider()
+                            .opacity(0.18)
+                            .padding(.leading, 74)
+                    }
                 }
             }
         }
@@ -221,9 +252,40 @@ struct CreateGroupPageView: View {
                 .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
+                        .stroke(cardBorder, lineWidth: 1)
+                )
+                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+        )
+    }
+
+    private var memberSearchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(AppPalette.secondaryText)
+
+            TextField("Search friends", text: $memberSearchText)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(AppPalette.primaryText)
+
+            if !memberSearchText.isEmpty {
+                Button {
+                    memberSearchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(AppPalette.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(AppPalette.searchField)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
         )
     }
 
@@ -255,9 +317,9 @@ struct CreateGroupPageView: View {
                                 .fill(selectedGroupType == type ? AppPalette.accentMid : AppPalette.card)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .stroke(AppPalette.border, lineWidth: 1)
+                                        .stroke(cardBorder, lineWidth: 1)
                                 )
-                                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
+                                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
                         )
                     }
                     .buttonStyle(.plain)
@@ -272,6 +334,14 @@ struct CreateGroupPageView: View {
 
     private var canSaveGroup: Bool {
         !trimmedGroupName.isEmpty && !selectedFriendIDs.isEmpty
+    }
+
+    private var filteredFriends: [BalanceItem] {
+        let trimmed = memberSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return availableFriends
+        }
+        return availableFriends.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
     }
 
     private func toggleFriend(_ id: UUID) {
@@ -319,7 +389,4 @@ enum GroupType: CaseIterable {
         case .others: return "square.grid.2x2"
         }
     }
-}
-#Preview {
-    ContentView()
 }

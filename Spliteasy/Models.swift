@@ -76,6 +76,7 @@ struct GroupExpenseDraft: Hashable {
     var paidBy: [String]
     var splitWith: [String]
     var yourNetAmount: Double
+    var paidAmounts: [String: Double] = [:]
 }
 
 struct BalanceItem: Identifiable, Hashable {

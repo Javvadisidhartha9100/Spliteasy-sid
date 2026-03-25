@@ -30,7 +30,7 @@ struct AddFriendPageView: View {
 
                     friendNameCard
                     contactCard
-                    actionPreviewCard
+                    sendInvitationButton
 
                     Spacer(minLength: 120)
                 }
@@ -60,7 +60,7 @@ struct AddFriendPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -65)
+            .padding(.top, -60)
 
             Spacer()
 
@@ -95,7 +95,7 @@ struct AddFriendPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(trimmedName.isEmpty)
-            .padding(.top, -65)
+            .padding(.top, -60)
         }
     }
 
@@ -160,41 +160,34 @@ struct AddFriendPageView: View {
         )
     }
 
-    private var actionPreviewCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Quick Actions")
-                .font(.system(size: 20, weight: .bold))
-                .italic()
-                .foregroundColor(AppPalette.primaryText)
+    private var sendInvitationButton: some View {
+        Button {
+            print("Send invitation tapped")
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 18, weight: .bold))
 
-            HStack(spacing: 12) {
-                previewButton(icon: "arrow.left.arrow.right", title: "Settle up")
-                previewButton(icon: "bell", title: "Remind")
+                Text("Send Invitation")
+                    .font(.system(size: 18, weight: .bold))
             }
-        }
-    }
-
-    private func previewButton(icon: String, title: String) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(AppPalette.accentMid)
-
-            Text(title)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(AppPalette.primaryText)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 88)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppPalette.card)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(cardBorder, lineWidth: 1)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(
+                    colors: [
+                        AppPalette.accentStart,
+                        AppPalette.accentEnd
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
                 )
-                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
-        )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
     }
 
     private var trimmedName: String {
@@ -213,7 +206,3 @@ struct AddFriendPageView: View {
         selectedTab = .friends
     }
 }
-#Preview {
-    ContentView()
-}
-

@@ -13,9 +13,19 @@ struct ContentView: View {
     @State private var showSettleUpPage = false
     @State private var settleUpReturnToFriendDetail = false
     @State private var monthlyLimit: Double = 2000.00
+    @State private var isLoggedIn = true
 
     @AppStorage("appThemeMode") private var savedThemeMode: String = AppThemeMode.auto.rawValue
     @State private var showThemeMenu = false
+
+    @State private var profileName: String = "Sidhartha Javvadi"
+    @State private var profileEmail: String = "javvadisidhartha9100@gmail.com"
+    @State private var profilePhone: String = ""
+    @State private var recentNotifications: [AppNotificationItem] = [
+        .init(title: "Reminder sent", message: "Your reminder was sent successfully.", timeText: "Today"),
+        .init(title: "Expense added", message: "Your latest expense was saved to the activity page.", timeText: "Yesterday"),
+        .init(title: "Monthly limit", message: "You have used a good portion of your monthly budget.", timeText: "2d ago")
+    ]
 
     @State private var selectedFriendDetail: BalanceItem?
     @State private var selectedExpenseTarget: BalanceItem?
@@ -47,6 +57,19 @@ struct ContentView: View {
     ]
 
     var body: some View {
+        ZStack(alignment: .leading) {
+            if isLoggedIn {
+                mainAppView
+            } else {
+                LoginPageView {
+                    isLoggedIn = true
+                }
+            }
+        }
+        .preferredColorScheme(resolvedColorScheme)
+    }
+
+    private var mainAppView: some View {
         ZStack(alignment: .leading) {
             ZStack {
                 Color.gray.opacity(0.12)
@@ -172,7 +195,17 @@ struct ContentView: View {
                         )
 
                     case .profile:
-                        AccountPageView(showThemeMenu: $showThemeMenu)
+                        AccountPageView(
+                            showThemeMenu: $showThemeMenu,
+                            profileName: $profileName,
+                            profileEmail: $profileEmail,
+                            profilePhone: $profilePhone,
+                            notifications: recentNotifications,
+                            onSaveProfile: saveProfile,
+                            onSubmitFeedback: submitFeedback,
+                            onContactSupport: contactSupport,
+                            onSignOut: signOut
+                        )
 
                     case .add:
                         AddExpensePageView(
@@ -199,7 +232,6 @@ struct ContentView: View {
                 .zIndex(100)
             }
         }
-        .preferredColorScheme(resolvedColorScheme)
         .safeAreaInset(edge: .bottom) {
             if !showCreateGroupPage &&
                 !showAddFriendPage &&
@@ -353,6 +385,11 @@ struct ContentView: View {
         selectedSection = .friends
         showAddFriendPage = false
         selectedTab = .friends
+
+        recentNotifications.insert(
+            .init(title: "Friend added", message: "\(name) was added successfully.", timeText: "Now"),
+            at: 0
+        )
     }
 
     private func saveNewGroup(name: String, type: GroupType, members: [BalanceItem]) {
@@ -369,6 +406,11 @@ struct ContentView: View {
         selectedSection = .groups
         showCreateGroupPage = false
         selectedTab = .friends
+
+        recentNotifications.insert(
+            .init(title: "Group created", message: "\(name) was created successfully.", timeText: "Now"),
+            at: 0
+        )
     }
 
     private func signedBalance(for item: BalanceItem) -> Double {
@@ -410,6 +452,11 @@ struct ContentView: View {
                 monthKey: monthKey(for: Date()),
                 category: "Other"
             ),
+            at: 0
+        )
+
+        recentNotifications.insert(
+            .init(title: "Settlement saved", message: "You settled \(friendsData[index].name) via \(method).", timeText: "Now"),
             at: 0
         )
 
@@ -467,6 +514,12 @@ struct ContentView: View {
                 category: inferCategory(from: description)
             )
             activityTransactions.insert(transaction, at: 0)
+
+            recentNotifications.insert(
+                .init(title: "Expense added", message: "\(description) was added for \(friend.name).", timeText: "Now"),
+                at: 0
+            )
+
             showFriendDetailPage = true
             selectedTab = .friends
             selectedSection = .friends
@@ -487,7 +540,12 @@ struct ContentView: View {
 
             let subtitleText: String
             if let groupDraft {
-                subtitleText = "Paid by \(groupDraft.paidBy.joined(separator: ", ")) · split with \(groupDraft.splitWith.count)"
+                let payerDetails = groupDraft.paidBy.map { person in
+                    let paid = groupDraft.paidAmounts[person] ?? 0
+                    return "\(person) $\(String(format: "%.2f", paid))"
+                }.joined(separator: ", ")
+
+                subtitleText = "Paid by \(payerDetails) · split with \(groupDraft.splitWith.count)"
             } else {
                 subtitleText = direction == .owesYou
                     ? "You paid · \(groupsData[groupIndex].participantCount) people"
@@ -503,6 +561,12 @@ struct ContentView: View {
                 category: inferCategory(from: description)
             )
             activityTransactions.insert(transaction, at: 0)
+
+            recentNotifications.insert(
+                .init(title: "Group expense added", message: "\(description) was added to \(groupsData[groupIndex].name).", timeText: "Now"),
+                at: 0
+            )
+
             selectedSection = .groups
             selectedTab = .friends
         }
@@ -548,6 +612,56 @@ struct ContentView: View {
             showSettleUpPage = false
             showExpenseSelectionPage = true
         }
+    }
+
+    private func saveProfile(name: String, email: String, phone: String, password: String) {
+        profileName = name.isEmpty ? profileName : name
+        profileEmail = email.isEmpty ? profileEmail : email
+        profilePhone = phone
+
+        recentNotifications.insert(
+            .init(
+                title: "Profile updated",
+                message: password.isEmpty ? "Your profile details were updated." : "Your profile and password were updated.",
+                timeText: "Now"
+            ),
+            at: 0
+        )
+    }
+
+    private func submitFeedback(rating: Int, message: String) {
+        recentNotifications.insert(
+            .init(
+                title: "Feedback received",
+                message: rating > 0 ? "Thanks for rating the app \(rating)/5." : "Thanks for your feedback.",
+                timeText: "Now"
+            ),
+            at: 0
+        )
+    }
+
+    private func contactSupport(subject: String, message: String) {
+        recentNotifications.insert(
+            .init(
+                title: "Support message sent",
+                message: subject.isEmpty ? "Your message was sent to customer service." : "\"\(subject)\" was sent to customer service.",
+                timeText: "Now"
+            ),
+            at: 0
+        )
+    }
+
+    private func signOut() {
+        showThemeMenu = false
+        showPlusMenu = false
+        showExpenseSelectionPage = false
+        showCreateGroupPage = false
+        showAddFriendPage = false
+        showFriendDetailPage = false
+        showSettleUpSelectionPage = false
+        showSettleUpPage = false
+        selectedTab = .home
+        isLoggedIn = false
     }
 }
 

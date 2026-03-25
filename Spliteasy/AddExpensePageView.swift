@@ -18,10 +18,15 @@ struct AddExpensePageView: View {
     @State private var showPaidByPicker = false
     @State private var showSplitPicker = false
 
+    @State private var paidAmountsText: [String: String] = [:]
+
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                colors: [
+                    AppPalette.backgroundTop,
+                    AppPalette.backgroundBottom
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -45,6 +50,10 @@ struct AddExpensePageView: View {
 
                         amountCard
                         splitButtonsSection
+
+                        if isGroup && !splitEquallySelected {
+                            payerAmountsCard
+                        }
 
                         if enteredAmount > 0 {
                             summaryCard
@@ -84,6 +93,17 @@ struct AddExpensePageView: View {
             if isGroup {
                 selectedSplitPeople = Set(groupPeople)
                 selectedPaidByPeople = ["YOU"]
+                resetPaidAmountsForCurrentSelection()
+            }
+        }
+        .onChange(of: amountText) {
+            if isGroup && !splitEquallySelected {
+                resetPaidAmountsForCurrentSelection()
+            }
+        }
+        .onChange(of: selectedPaidByPeople) {
+            if isGroup && !splitEquallySelected {
+                resetPaidAmountsForCurrentSelection()
             }
         }
     }
@@ -126,7 +146,6 @@ struct AddExpensePageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -60)
 
             Spacer()
 
@@ -140,7 +159,10 @@ struct AddExpensePageView: View {
                     .padding(.vertical, 12)
                     .background(
                         LinearGradient(
-                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                            colors: [
+                                AppPalette.accentStart,
+                                AppPalette.accentEnd
+                            ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -151,7 +173,6 @@ struct AddExpensePageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveExpense)
-            .padding(.top, -60)
         }
     }
 
@@ -201,7 +222,10 @@ struct AddExpensePageView: View {
                 .padding(.vertical, 12)
                 .background(
                     LinearGradient(
-                        colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                        colors: [
+                            AppPalette.accentStart,
+                            AppPalette.accentEnd
+                        ],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -228,7 +252,7 @@ struct AddExpensePageView: View {
     private func inputCard(icon: String, placeholder: String, text: Binding<String>) -> some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AppPalette.rowIconBg)
+                .fill(Color.purple.opacity(0.10))
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: icon)
@@ -262,7 +286,7 @@ struct AddExpensePageView: View {
     private var amountCard: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AppPalette.rowIconBg)
+                .fill(Color.purple.opacity(0.10))
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "dollarsign.square.fill")
@@ -300,6 +324,7 @@ struct AddExpensePageView: View {
                 if isGroup {
                     selectedPaidByPeople = ["YOU"]
                     selectedSplitPeople = Set(groupPeople)
+                    resetPaidAmountsForCurrentSelection()
                 } else {
                     selectedCustomOption = .youPaidSplitEqually
                 }
@@ -311,7 +336,10 @@ struct AddExpensePageView: View {
                     .padding(.vertical, 18)
                     .background(
                         LinearGradient(
-                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                            colors: [
+                                AppPalette.accentStart,
+                                AppPalette.accentEnd
+                            ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -366,7 +394,7 @@ struct AddExpensePageView: View {
                         .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(AppPalette.rowIconBg)
+                        .background(Color.purple.opacity(0.08))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -384,7 +412,7 @@ struct AddExpensePageView: View {
                         .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(AppPalette.rowIconBg)
+                        .background(Color.purple.opacity(0.08))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -395,6 +423,84 @@ struct AddExpensePageView: View {
             Text("The payer does not need to be included in the split.")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(AppPalette.secondaryText)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(AppPalette.card)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(AppPalette.border, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
+        )
+    }
+
+    private var payerAmountsCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Paid Amounts")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(AppPalette.primaryText)
+
+                Spacer()
+
+                Button {
+                    fillPaidAmountsEqually()
+                } label: {
+                    Text("Split paid equally")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(AppPalette.accentMid)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.purple.opacity(0.08))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            ForEach(effectivePaidByPeople, id: \.self) { person in
+                HStack(spacing: 12) {
+                    Text(person)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(AppPalette.primaryText)
+                        .frame(width: 90, alignment: .leading)
+
+                    TextField("0.00", text: bindingForPaidAmount(person))
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppPalette.primaryText)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(AppPalette.searchField)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(AppPalette.border, lineWidth: 1)
+                                )
+                        )
+                }
+            }
+
+            HStack {
+                Text("Total entered")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppPalette.secondaryText)
+
+                Spacer()
+
+                Text("$\(String(format: "%.2f", totalPaidAmount))")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(totalPaidAmountMatches ? .green.opacity(0.9) : .red.opacity(0.85))
+            }
+
+            if enteredAmount > 0 && !totalPaidAmountMatches {
+                Text("Entered payer amounts must equal $\(String(format: "%.2f", enteredAmount)).")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.red.opacity(0.85))
+            }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
@@ -453,10 +559,72 @@ extension AddExpensePageView {
         return values.count == 1 ? "SPLIT \(values[0])" : "SPLIT \(values.count)"
     }
 
+    private func bindingForPaidAmount(_ person: String) -> Binding<String> {
+        Binding(
+            get: { paidAmountsText[person] ?? "" },
+            set: { paidAmountsText[person] = $0 }
+        )
+    }
+
+    private func parsedPaidAmount(for person: String) -> Double {
+        Double((paidAmountsText[person] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+    }
+
+    private var paidAmountsDictionary: [String: Double] {
+        Dictionary(uniqueKeysWithValues: effectivePaidByPeople.map { ($0, parsedPaidAmount(for: $0)) })
+    }
+
+    private var totalPaidAmount: Double {
+        effectivePaidByPeople.reduce(0) { $0 + parsedPaidAmount(for: $1) }
+    }
+
+    private var totalPaidAmountMatches: Bool {
+        abs(totalPaidAmount - enteredAmount) < 0.01
+    }
+
+    private func fillPaidAmountsEqually() {
+        let people = effectivePaidByPeople
+        guard !people.isEmpty else { return }
+
+        let total = enteredAmount
+        guard total > 0 else {
+            for person in people {
+                paidAmountsText[person] = ""
+            }
+            return
+        }
+
+        let evenShare = total / Double(people.count)
+        var runningTotal: Double = 0
+
+        for index in people.indices {
+            let person = people[index]
+            let value: Double
+
+            if index == people.count - 1 {
+                value = max(0, total - runningTotal)
+            } else {
+                value = (evenShare * 100).rounded() / 100
+                runningTotal += value
+            }
+
+            paidAmountsText[person] = String(format: "%.2f", value)
+        }
+    }
+
+    private func resetPaidAmountsForCurrentSelection() {
+        let currentPeople = Set(effectivePaidByPeople)
+        paidAmountsText = paidAmountsText.filter { currentPeople.contains($0.key) }
+
+        let hasMissing = effectivePaidByPeople.contains { (paidAmountsText[$0] ?? "").isEmpty }
+        if hasMissing || abs(totalPaidAmount - enteredAmount) > 0.01 {
+            fillPaidAmountsEqually()
+        }
+    }
+
     private var groupYourPaidShare: Double {
         guard enteredAmount > 0 else { return 0 }
-        let payers = max(effectivePaidByPeople.count, 1)
-        return effectivePaidByPeople.contains("YOU") ? enteredAmount / Double(payers) : 0
+        return parsedPaidAmount(for: "YOU")
     }
 
     private var groupYourSplitShare: Double {
@@ -532,7 +700,7 @@ extension AddExpensePageView {
 
     private var summaryColor: Color {
         if calculatedAmount == 0 {
-            return AppPalette.secondaryText
+            return .gray
         }
         return activeDirection == .owesYou ? .green.opacity(0.9) : .red.opacity(0.85)
     }
@@ -543,7 +711,9 @@ extension AddExpensePageView {
         guard enteredAmount > 0 else { return false }
 
         if isGroup && !splitEquallySelected {
-            return !effectivePaidByPeople.isEmpty && !effectiveSplitPeople.isEmpty
+            return !effectivePaidByPeople.isEmpty &&
+                !effectiveSplitPeople.isEmpty &&
+                totalPaidAmountMatches
         }
 
         return true
@@ -556,7 +726,8 @@ extension AddExpensePageView {
         let draft: GroupExpenseDraft? = isGroup ? GroupExpenseDraft(
             paidBy: effectivePaidByPeople,
             splitWith: effectiveSplitPeople,
-            yourNetAmount: groupNetAmount
+            yourNetAmount: groupNetAmount,
+            paidAmounts: paidAmountsDictionary
         ) : nil
 
         onSaveExpense(
@@ -569,6 +740,7 @@ extension AddExpensePageView {
 
         descriptionText = ""
         amountText = ""
+        paidAmountsText = [:]
         selectedTab = selectedItem.kind == .group ? .friends : .home
     }
 }
@@ -598,7 +770,6 @@ struct GroupMemberPickerSheet: View {
             .padding(.vertical, 16)
 
             Divider()
-                .background(AppPalette.divider)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -622,7 +793,6 @@ struct GroupMemberPickerSheet: View {
                         .buttonStyle(.plain)
 
                         Divider()
-                            .background(AppPalette.divider)
                     }
                 }
             }
@@ -641,8 +811,3 @@ struct GroupMemberPickerSheet: View {
         }
     }
 }
-
-#Preview {
-    ContentView()
-}
-
