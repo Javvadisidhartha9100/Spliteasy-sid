@@ -8,6 +8,7 @@ struct HomePageView: View {
     let monthlySpent: Double
     let onSelectItem: (BalanceItem) -> Void
     let onSettleUpTap: () -> Void
+    @Binding var showThemeMenu: Bool
 
     @State private var showFilterSheet = false
     @State private var searchText = ""
@@ -21,26 +22,33 @@ struct HomePageView: View {
                 .padding(.top, 8)
 
             monthlyLimitCard
-                .padding(.top, 8)
+                .padding(.top, 10)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
+                VStack(spacing: 12) {
                     ForEach(filteredSearchFriends) { item in
                         Button {
                             onSelectItem(item)
                         } label: {
                             HomeBalanceRow(item: item)
-                                .padding(.vertical, 6)
                         }
                         .buttonStyle(.plain)
                     }
 
                     Spacer(minLength: 180)
                 }
-                .padding(.top, 10)
+                .padding(.top, 12)
                 .padding(.horizontal, 14)
             }
         }
+        .background(
+            LinearGradient(
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
         .sheet(isPresented: $showFilterSheet) {
             FilterPageView(selectedFilter: $selectedFilter)
         }
@@ -67,7 +75,7 @@ struct HomePageView: View {
         } else if progressValue >= 0.75 {
             return .orange.opacity(0.85)
         } else {
-            return Color(red: 0.53, green: 0.28, blue: 0.95)
+            return AppPalette.accentMid
         }
     }
 
@@ -77,6 +85,8 @@ struct HomePageView: View {
 
     private func headerView(title: String) -> some View {
         HStack {
+            ThemeHeaderButton(showThemeMenu: $showThemeMenu)
+
             Spacer()
 
             Button {
@@ -89,39 +99,36 @@ struct HomePageView: View {
                     .padding(.vertical, 8)
                     .background(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.75, green: 0.30, blue: 0.97),
-                                Color(red: 0.60, green: 0.24, blue: 0.90)
-                            ],
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .clipShape(Capsule())
-                    .shadow(color: Color.purple.opacity(0.15), radius: 6, x: 0, y: 3)
+                    .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.top, -45)
-        .padding(.bottom, -20)
+        .padding(.bottom, -5)
     }
 
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             TextField("Search friends", text: $searchText)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
                 }
                 .buttonStyle(.plain)
             }
@@ -129,13 +136,13 @@ struct HomePageView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppPalette.searchField)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.06), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 4)
         )
     }
 
@@ -145,15 +152,15 @@ struct HomePageView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Monthly Limit")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
 
                     Text("$\(formattedAmount(monthlyLimit))")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.black)
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(AppPalette.primaryText)
 
                     Text("Spent $\(formattedAmount(monthlySpent)) this month")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(red: 0.35, green: 0.38, blue: 0.45))
+                        .foregroundColor(AppPalette.secondaryText)
                 }
 
                 Spacer(minLength: 10)
@@ -174,19 +181,22 @@ struct HomePageView: View {
             VStack(alignment: .leading, spacing: 10) {
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.gray.opacity(0.12))
+                        .fill(Color.gray.opacity(0.15))
                         .frame(height: 16)
 
                     GeometryReader { geo in
                         Capsule()
                             .fill(
                                 LinearGradient(
-                                    colors: [progressTint.opacity(0.95), progressTint],
+                                    colors: [progressTint.opacity(0.96), progressTint],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(width: max(16, geo.size.width * progressValue), height: 16)
+                            .frame(
+                                width: max(16, geo.size.width * progressValue),
+                                height: 16
+                            )
                     }
                     .frame(height: 16)
                 }
@@ -201,11 +211,11 @@ struct HomePageView: View {
                     if monthlySpent <= monthlyLimit {
                         Text("$\(formattedAmount(amountLeft)) left")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color.green.opacity(0.85))
+                            .foregroundColor(.green.opacity(0.90))
                     } else {
                         Text("Over by $\(formattedAmount(monthlySpent - monthlyLimit))")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color.red.opacity(0.85))
+                            .foregroundColor(.red.opacity(0.88))
                     }
                 }
             }
@@ -214,19 +224,14 @@ struct HomePageView: View {
             .padding(.bottom, 16)
         }
         .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 28)
-                        .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 6)
         )
         .padding(.horizontal, 12)
     }
 }
-
-#Preview {
-    ContentView()
-}
-

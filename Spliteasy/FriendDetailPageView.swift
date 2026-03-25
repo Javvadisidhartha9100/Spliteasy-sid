@@ -14,17 +14,12 @@ struct FriendDetailPageView: View {
     let onAddExpense: (BalanceItem) -> Void
     let onSettleUp: (BalanceItem) -> Void
 
-    private let cardBorder = Color.purple.opacity(0.12)
-    private let cardShadow = Color.purple.opacity(0.08)
-    private let themePurple = Color(red: 0.53, green: 0.28, blue: 0.95)
+    private let themePurple = AppPalette.accentMid
 
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [
-                    Color(red: 0.96, green: 0.95, blue: 1.0),
-                    Color.white
-                ],
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -69,13 +64,13 @@ struct FriendDetailPageView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .frame(width: 46, height: 46)
-                        .shadow(color: cardShadow, radius: 8, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppPalette.primaryText)
                 }
             }
             .buttonStyle(.plain)
@@ -85,7 +80,7 @@ struct FriendDetailPageView: View {
             Text("Friend Details")
                 .font(.system(size: 24, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
@@ -107,12 +102,12 @@ struct FriendDetailPageView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Friend")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppPalette.secondaryText)
 
                 Text(friend.name)
                     .font(.system(size: 28, weight: .bold))
                     .italic()
-                    .foregroundColor(Color(red: 0.10, green: 0.14, blue: 0.22))
+                    .foregroundColor(AppPalette.primaryText)
 
                 Text(friend.balanceText)
                     .font(.system(size: 15, weight: .bold))
@@ -125,12 +120,12 @@ struct FriendDetailPageView: View {
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(cardBorder, lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: cardShadow, radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
         )
     }
 
@@ -160,18 +155,18 @@ struct FriendDetailPageView: View {
 
             Text(title)
                 .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 100)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(cardBorder, lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
         )
     }
 
@@ -180,28 +175,28 @@ struct FriendDetailPageView: View {
             Text("Recent Expenses")
                 .font(.system(size: 22, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             if friend.expenses.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray")
                         .font(.system(size: 26, weight: .semibold))
-                        .foregroundColor(.gray.opacity(0.7))
+                        .foregroundColor(AppPalette.secondaryText.opacity(0.7))
 
                     Text("No expenses yet")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 28)
                 .background(
                     RoundedRectangle(cornerRadius: 22)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .overlay(
                             RoundedRectangle(cornerRadius: 22)
-                                .stroke(cardBorder, lineWidth: 1)
+                                .stroke(AppPalette.border, lineWidth: 1)
                         )
-                        .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
                 )
             } else {
                 VStack(spacing: 0) {
@@ -219,18 +214,18 @@ struct FriendDetailPageView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(expense.description)
                                     .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(AppPalette.primaryText)
 
                                 Text(expense.dateText)
                                     .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(AppPalette.secondaryText)
                             }
 
                             Spacer()
 
                             Text("$\(String(format: "%.2f", expense.amount))")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
+                                .foregroundColor(AppPalette.primaryText)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
@@ -243,12 +238,12 @@ struct FriendDetailPageView: View {
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 22)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .overlay(
                             RoundedRectangle(cornerRadius: 22)
-                                .stroke(cardBorder, lineWidth: 1)
+                                .stroke(AppPalette.border, lineWidth: 1)
                         )
-                        .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
                 )
             }
         }
@@ -265,10 +260,7 @@ struct FriendDetailPageView: View {
                 .padding(.vertical, 18)
                 .background(
                     LinearGradient(
-                        colors: [
-                            Color(red: 0.75, green: 0.30, blue: 0.97),
-                            Color(red: 0.60, green: 0.24, blue: 0.90)
-                        ],
+                        colors: [AppPalette.accentStart, AppPalette.accentEnd],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

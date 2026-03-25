@@ -1,14 +1,8 @@
-//
-//  ActivityPageView.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/17/26.
-//
-
 import SwiftUI
 
 struct ActivityPageView: View {
     let transactions: [TransactionItem]
+    @Binding var showThemeMenu: Bool
     @State private var selectedChart: ActivityChartType = .category
 
     var body: some View {
@@ -22,7 +16,7 @@ struct ActivityPageView: View {
 
                 Text("Recent Transactions")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color(red: 0.22, green: 0.26, blue: 0.34))
+                    .foregroundColor(AppPalette.primaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 16)
                     .padding(.horizontal, 20)
@@ -40,23 +34,40 @@ struct ActivityPageView: View {
                 .frame(maxHeight: .infinity)
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
-            .background(Color.gray.opacity(0.12).ignoresSafeArea())
+            .background(
+                LinearGradient(
+                    colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
         }
     }
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Activity")
-                .font(.system(size: 32, weight: .bold))
-                .foregroundColor(Color(red: 0.05, green: 0.10, blue: 0.18))
+        VStack(alignment: .trailing, spacing: 6) {
+            HStack(alignment: .top) {
+                ThemeHeaderButton(showThemeMenu: $showThemeMenu)
 
-            Text("All your transactions")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text("Activity")
+                        .font(.system(size: 28, weight: .bold))
+                        .italic()
+                        .foregroundColor(AppPalette.primaryText)
+
+                    Text("All your transactions")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(AppPalette.secondaryText)
+                }
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(.horizontal, 20)
-        .padding(.top, -40)
+        .padding(.top, -45)
+        .padding(.bottom, -5)
     }
 
     private var chartCard: some View {
@@ -65,22 +76,22 @@ struct ActivityPageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(selectedChart == .category ? "This Month by Category" : "Monthly Expenses")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(red: 0.25, green: 0.29, blue: 0.37))
+                        .foregroundColor(AppPalette.primaryText)
 
                     Text(selectedChart == .category ? currentMonthTitle : "Last 6 months")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                        .foregroundColor(AppPalette.secondaryText)
                 }
 
                 Spacer()
 
                 HStack(spacing: 8) {
                     Capsule()
-                        .fill(selectedChart == .category ? Color.purple : Color.gray.opacity(0.35))
+                        .fill(selectedChart == .category ? AppPalette.accentMid : Color.gray.opacity(0.35))
                         .frame(width: 28, height: 12)
 
                     Capsule()
-                        .fill(selectedChart == .month ? Color.purple : Color.gray.opacity(0.35))
+                        .fill(selectedChart == .month ? AppPalette.accentMid : Color.gray.opacity(0.35))
                         .frame(width: 28, height: 12)
                 }
                 .padding(.top, 4)
@@ -100,7 +111,11 @@ struct ActivityPageView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(Color(red: 0.95, green: 0.95, blue: 0.96))
+                .fill(AppPalette.softCard)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .stroke(AppPalette.border, lineWidth: 1)
+                )
         )
     }
 
@@ -173,11 +188,11 @@ struct ActivityPageView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(item.name)
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(Color(red: 0.22, green: 0.26, blue: 0.34))
+                                .foregroundColor(AppPalette.primaryText)
 
                             Text("$\(String(format: "%.2f", item.amount))")
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                                .foregroundColor(AppPalette.secondaryText)
                         }
                     }
                 }
@@ -194,13 +209,13 @@ struct ActivityPageView: View {
                     VStack(spacing: 8) {
                         Text(item.amount > 0 ? shortAmount(item.amount) : "")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(Color(red: 0.42, green: 0.46, blue: 0.54))
+                            .foregroundColor(AppPalette.secondaryText)
                             .frame(height: 16)
 
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(red: 0.54, green: 0.25, blue: 0.95), Color(red: 0.43, green: 0.20, blue: 0.86)],
+                                    colors: [AppPalette.accentStart, AppPalette.accentEnd],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
@@ -209,7 +224,7 @@ struct ActivityPageView: View {
 
                         Text(item.month)
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(Color(red: 0.42, green: 0.46, blue: 0.54))
+                            .foregroundColor(AppPalette.secondaryText)
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -227,7 +242,7 @@ struct ActivityPageView: View {
             } label: {
                 Text("By Category")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(selectedChart == .category ? .white : Color(red: 0.42, green: 0.46, blue: 0.54))
+                    .foregroundColor(selectedChart == .category ? .white : AppPalette.secondaryText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
@@ -235,7 +250,7 @@ struct ActivityPageView: View {
                             .fill(
                                 selectedChart == .category
                                 ? LinearGradient(
-                                    colors: [Color(red: 0.54, green: 0.25, blue: 0.95), Color(red: 0.43, green: 0.20, blue: 0.86)],
+                                    colors: [AppPalette.accentStart, AppPalette.accentEnd],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -243,7 +258,7 @@ struct ActivityPageView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(Color.gray.opacity(0.25), lineWidth: selectedChart == .category ? 0 : 1.5)
+                                    .stroke(AppPalette.border, lineWidth: selectedChart == .category ? 0 : 1.5)
                             )
                     )
             }
@@ -256,7 +271,7 @@ struct ActivityPageView: View {
             } label: {
                 Text("By Month")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(selectedChart == .month ? .white : Color(red: 0.42, green: 0.46, blue: 0.54))
+                    .foregroundColor(selectedChart == .month ? .white : AppPalette.secondaryText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
@@ -264,7 +279,7 @@ struct ActivityPageView: View {
                             .fill(
                                 selectedChart == .month
                                 ? LinearGradient(
-                                    colors: [Color(red: 0.54, green: 0.25, blue: 0.95), Color(red: 0.43, green: 0.20, blue: 0.86)],
+                                    colors: [AppPalette.accentStart, AppPalette.accentEnd],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -272,7 +287,7 @@ struct ActivityPageView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(Color.gray.opacity(0.25), lineWidth: selectedChart == .month ? 0 : 1.5)
+                                    .stroke(AppPalette.border, lineWidth: selectedChart == .month ? 0 : 1.5)
                             )
                     )
             }
@@ -323,17 +338,17 @@ struct ModernDonutChartView: View {
             }
 
             Circle()
-                .fill(Color(red: 0.95, green: 0.95, blue: 0.96))
+                .fill(AppPalette.softCard)
                 .frame(width: 60, height: 60)
 
             VStack(spacing: 2) {
                 Text("$\(String(format: "%.0f", data.reduce(0) { $0 + $1.amount }))")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color(red: 0.22, green: 0.26, blue: 0.34))
+                    .foregroundColor(AppPalette.primaryText)
 
                 Text("Month")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                    .foregroundColor(AppPalette.secondaryText)
             }
         }
         .rotationEffect(.degrees(-90))
@@ -358,23 +373,23 @@ struct ActivityTransactionRow: View {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(red: 0.91, green: 0.88, blue: 0.98))
+                        .fill(AppPalette.rowIconBg)
                         .frame(width: 56, height: 56)
 
                     Image(systemName: iconName(for: item.category))
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                        .foregroundColor(AppPalette.accentMid)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(red: 0.15, green: 0.19, blue: 0.26))
+                        .foregroundColor(AppPalette.primaryText)
                         .lineLimit(1)
 
                     Text(item.subtitle)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                        .foregroundColor(AppPalette.secondaryText)
                         .lineLimit(1)
                 }
 
@@ -383,18 +398,18 @@ struct ActivityTransactionRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(String(format: "$%.2f", item.amount))
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(red: 0.15, green: 0.19, blue: 0.26))
+                        .foregroundColor(AppPalette.primaryText)
 
                     Text(item.date)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(red: 0.60, green: 0.64, blue: 0.71))
+                        .foregroundColor(AppPalette.secondaryText)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
 
             Divider()
-                .background(Color.gray.opacity(0.2))
+                .background(AppPalette.divider)
         }
     }
 
@@ -427,8 +442,4 @@ struct ActivityDonutSlice: Shape {
         )
         return path
     }
-}
-
-#Preview {
-    ContentView()
 }

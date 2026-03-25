@@ -11,17 +11,12 @@ struct CreateGroupPageView: View {
     @State private var showFriendsList = false
     @State private var selectedFriendIDs: Set<UUID> = []
 
-    private let cardBorder = Color.purple.opacity(0.12)
-    private let cardShadow = Color.purple.opacity(0.08)
-    private let iconTint = Color(red: 0.53, green: 0.28, blue: 0.95)
+    private let iconTint = AppPalette.accentMid
 
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [
-                    Color(red: 0.96, green: 0.95, blue: 1.0),
-                    Color.white
-                ],
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -59,23 +54,24 @@ struct CreateGroupPageView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .frame(width: 46, height: 46)
-                        .shadow(color: cardShadow, radius: 8, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppPalette.primaryText)
                 }
             }
             .buttonStyle(.plain)
+            .padding(.top, -65)
 
             Spacer()
 
             Text("Create Group")
                 .font(.system(size: 24, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
@@ -89,10 +85,7 @@ struct CreateGroupPageView: View {
                     .padding(.vertical, 12)
                     .background(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.54, green: 0.25, blue: 0.95),
-                                Color(red: 0.43, green: 0.20, blue: 0.86)
-                            ],
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -103,6 +96,7 @@ struct CreateGroupPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveGroup)
+            .padding(.top, -65)
         }
     }
 
@@ -110,26 +104,26 @@ struct CreateGroupPageView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Group Name")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             TextField("Enter group name", text: $groupName)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Rectangle()
-                .fill(Color.purple.opacity(0.15))
+                .fill(AppPalette.border)
                 .frame(height: 1)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(cardBorder, lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
         )
     }
 
@@ -148,7 +142,7 @@ struct CreateGroupPageView: View {
                 Text("Add member")
                     .font(.system(size: 20, weight: .bold))
                     .italic()
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Spacer()
 
@@ -161,18 +155,18 @@ struct CreateGroupPageView: View {
 
                 Image(systemName: showFriendsList ? "chevron.up" : "chevron.down")
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppPalette.secondaryText)
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 18)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.white)
+                    .fill(AppPalette.card)
                     .overlay(
                         RoundedRectangle(cornerRadius: 22)
-                            .stroke(cardBorder, lineWidth: 1)
+                            .stroke(AppPalette.border, lineWidth: 1)
                     )
-                    .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
             )
         }
         .buttonStyle(.plain)
@@ -197,18 +191,18 @@ struct CreateGroupPageView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(friend.name)
                                 .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(.black)
+                                .foregroundColor(AppPalette.primaryText)
 
                             Text("Friend")
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppPalette.secondaryText)
                         }
 
                         Spacer()
 
                         Image(systemName: selectedFriendIDs.contains(friend.id) ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(selectedFriendIDs.contains(friend.id) ? iconTint : .gray.opacity(0.5))
+                            .foregroundColor(selectedFriendIDs.contains(friend.id) ? iconTint : AppPalette.secondaryText.opacity(0.5))
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
@@ -224,12 +218,12 @@ struct CreateGroupPageView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(cardBorder, lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
         )
     }
 
@@ -238,7 +232,7 @@ struct CreateGroupPageView: View {
             Text("Group Type")
                 .font(.system(size: 20, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             HStack(spacing: 12) {
                 ForEach(GroupType.allCases, id: \.self) { type in
@@ -252,18 +246,18 @@ struct CreateGroupPageView: View {
 
                             Text(type.title)
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(selectedGroupType == type ? .white : .black)
+                                .foregroundColor(selectedGroupType == type ? .white : AppPalette.primaryText)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 82)
                         .background(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(selectedGroupType == type ? Color(red: 0.53, green: 0.28, blue: 0.95) : Color.white)
+                                .fill(selectedGroupType == type ? AppPalette.accentMid : AppPalette.card)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .stroke(cardBorder, lineWidth: 1)
+                                        .stroke(AppPalette.border, lineWidth: 1)
                                 )
-                                .shadow(color: cardShadow, radius: 8, x: 0, y: 5)
+                                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 5)
                         )
                     }
                     .buttonStyle(.plain)
@@ -325,4 +319,7 @@ enum GroupType: CaseIterable {
         case .others: return "square.grid.2x2"
         }
     }
+}
+#Preview {
+    ContentView()
 }

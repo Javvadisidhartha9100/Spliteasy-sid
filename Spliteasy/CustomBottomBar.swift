@@ -16,12 +16,12 @@ struct CustomBottomBar: View {
     let actionButtonPressed: () -> Void
     let addExpensePressed: () -> Void
 
-    private let activeColor = Color(red: 0.75, green: 0.20, blue: 0.95)
-    private let inactiveColor = Color.gray.opacity(0.65)
-    private let plusActiveStart = Color(red: 0.63, green: 0.23, blue: 0.92)
-    private let plusActiveEnd = Color(red: 0.49, green: 0.14, blue: 0.84)
-    private let plusInactiveStart = Color(red: 0.82, green: 0.25, blue: 0.95)
-    private let plusInactiveEnd = Color(red: 0.71, green: 0.16, blue: 0.90)
+    private let activeColor = AppPalette.accentMid
+    private let inactiveColor = AppPalette.secondaryText.opacity(0.75)
+    private let plusActiveStart = AppPalette.accentStart
+    private let plusActiveEnd = AppPalette.accentEnd
+    private let plusInactiveStart = AppPalette.accentStart
+    private let plusInactiveEnd = AppPalette.accentEnd
 
     var body: some View {
         GeometryReader { geo in
@@ -33,9 +33,13 @@ struct CustomBottomBar: View {
 
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.white.opacity(0.96))
+                    .fill(AppPalette.card.opacity(0.96))
                     .frame(height: 82)
-                    .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(AppPalette.border, lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 4)
                     .offset(y: 24)
 
                 HStack(spacing: 0) {
@@ -184,7 +188,7 @@ struct CustomBottomBar: View {
                                 endPoint: .bottom
                             )
                         )
-                        .shadow(color: activeColor.opacity(0.30), radius: 12, x: 0, y: 6)
+                        .shadow(color: AppPalette.accentMid.opacity(0.30), radius: 12, x: 0, y: 6)
                 )
         }
         .buttonStyle(.plain)

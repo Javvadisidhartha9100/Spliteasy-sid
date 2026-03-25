@@ -16,8 +16,12 @@ struct RecentSelectionPageView: View {
 
     var body: some View {
         ZStack {
-            Color.gray.opacity(0.12)
-                .ignoresSafeArea()
+            LinearGradient(
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 headerSection
@@ -48,22 +52,23 @@ struct RecentSelectionPageView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
             }
             .buttonStyle(.plain)
+            .padding(.top, -50) 
 
             Spacer()
 
             Text("Add Expenses")
                 .font(.system(size: 24, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
-            Color.clear
-                .frame(width: 24, height: 24)
+            Color.clear.frame(width: 24, height: 24)
         }
+        .padding(.top, 6)
     }
 
     private func recentSection(title: String, items: [BalanceItem]) -> some View {
@@ -71,7 +76,7 @@ struct RecentSelectionPageView: View {
             Text(title)
                 .font(.system(size: 20, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 0) {
@@ -94,12 +99,12 @@ struct RecentSelectionPageView: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(Color.white)
+                    .fill(AppPalette.card)
                     .overlay(
                         RoundedRectangle(cornerRadius: 28)
-                            .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                            .stroke(AppPalette.border, lineWidth: 1)
                     )
-                    .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+                    .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
             )
         }
     }
@@ -118,19 +123,19 @@ struct RecentSelectionPageView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
                     .lineLimit(1)
 
                 Text(item.kind == .friend ? "Friend" : "Group")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppPalette.secondaryText)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.gray.opacity(0.7))
+                .foregroundColor(AppPalette.secondaryText.opacity(0.7))
         }
         .padding(.vertical, 12)
     }
@@ -139,4 +144,8 @@ struct RecentSelectionPageView: View {
         let colors: [Color] = [.purple, .blue, .green, .pink]
         return colors[abs(item.name.hashValue) % colors.count]
     }
+}
+
+#Preview {
+    ContentView()
 }

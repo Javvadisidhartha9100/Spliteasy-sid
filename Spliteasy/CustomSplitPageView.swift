@@ -43,35 +43,6 @@ struct CustomSplitPageView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    private var calculatedAmount: Double {
-        switch selectedOption {
-        case .youPaidSplitEqually, .theyPaidSplitEqually:
-            return participantCount > 0 ? enteredAmount / Double(participantCount) : enteredAmount
-        case .youPaidTheyOweYouFull, .theyPaidYouOweFull:
-            return enteredAmount
-        }
-    }
-
-    private var amountPreviewText: String {
-        let formatted = String(format: "%.2f", calculatedAmount)
-
-        switch selectedOption {
-        case .youPaidSplitEqually, .youPaidTheyOweYouFull:
-            return "They owe you $\(formatted)"
-        case .theyPaidSplitEqually, .theyPaidYouOweFull:
-            return "You owe $\(formatted)"
-        }
-    }
-
-    private var amountPreviewColor: Color {
-        switch selectedOption {
-        case .youPaidSplitEqually, .youPaidTheyOweYouFull:
-            return .green
-        case .theyPaidSplitEqually, .theyPaidYouOweFull:
-            return .red
-        }
-    }
-
     var body: some View {
         ZStack {
             Color.black.opacity(0.18)
@@ -81,12 +52,13 @@ struct CustomSplitPageView: View {
                 VStack(spacing: 0) {
                     Text("Custom split")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 18)
                         .padding(.bottom, 16)
 
                     Divider()
+                        .background(AppPalette.divider)
 
                     ForEach(CustomSplitOption.allCases, id: \.self) { option in
                         Button {
@@ -96,7 +68,7 @@ struct CustomSplitPageView: View {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(option.title)
                                         .font(.system(size: 20))
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(AppPalette.primaryText)
                                         .multilineTextAlignment(.leading)
 
                                     if selectedOption == option && enteredAmount > 0 {
@@ -111,22 +83,23 @@ struct CustomSplitPageView: View {
                                 if selectedOption == option {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(AppPalette.accentMid)
                                 }
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 18)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white)
+                            .background(AppPalette.card)
                         }
                         .buttonStyle(.plain)
 
                         if option != CustomSplitOption.allCases.last {
                             Divider()
+                                .background(AppPalette.divider)
                         }
                     }
                 }
-                .background(Color.white)
+                .background(AppPalette.card)
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
 
                 Button {
@@ -134,10 +107,10 @@ struct CustomSplitPageView: View {
                 } label: {
                     Text("Done")
                         .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppPalette.accentMid)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
-                        .background(Color.white)
+                        .background(AppPalette.card)
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 }
                 .buttonStyle(.plain)

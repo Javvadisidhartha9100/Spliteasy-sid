@@ -14,6 +14,9 @@ struct ContentView: View {
     @State private var settleUpReturnToFriendDetail = false
     @State private var monthlyLimit: Double = 2000.00
 
+    @AppStorage("appThemeMode") private var savedThemeMode: String = AppThemeMode.auto.rawValue
+    @State private var showThemeMenu = false
+
     @State private var selectedFriendDetail: BalanceItem?
     @State private var selectedExpenseTarget: BalanceItem?
     @State private var selectedSettleTarget: BalanceItem?
@@ -44,119 +47,165 @@ struct ContentView: View {
     ]
 
     var body: some View {
-        ZStack {
-            Color.gray.opacity(0.12)
-                .ignoresSafeArea()
+        ZStack(alignment: .leading) {
+            ZStack {
+                Color.gray.opacity(0.12)
+                    .ignoresSafeArea()
 
-            if showSettleUpPage, let friend = selectedSettleTarget {
-                SettleUpPageView(
-                    friend: latestFriendVersion(for: friend),
-                    onBack: handleSettleUpBack,
-                    onSave: settleUpFriend
-                )
-            } else if showSettleUpSelectionPage {
-                SettleUpSelectionPageView(
-                    friends: filteredFriends,
-                    selectedTab: $selectedTab,
-                    showSettleUpSelectionPage: $showSettleUpSelectionPage,
-                    onSelectFriend: { friend in
-                        selectedSettleTarget = friend
-                        showSettleUpSelectionPage = false
-                        showSettleUpPage = true
-                        settleUpReturnToFriendDetail = false
-                    }
-                )
-            } else if showFriendDetailPage, let friend = selectedFriendDetail {
-                FriendDetailPageView(
-                    friend: latestFriendVersion(for: friend),
-                    selectedTab: $selectedTab,
-                    showFriendDetailPage: $showFriendDetailPage,
-                    onAddExpense: { item in
-                        openExpensePage(for: item)
-                    },
-                    onSettleUp: { item in
-                        selectedSettleTarget = item
-                        showFriendDetailPage = false
-                        showSettleUpPage = true
-                        settleUpReturnToFriendDetail = true
-                    }
-                )
-            } else if showAddFriendPage {
-                AddFriendPageView(
-                    selectedTab: $selectedTab,
-                    showAddFriendPage: $showAddFriendPage,
-                    onSaveFriend: saveNewFriend
-                )
-            } else if showCreateGroupPage {
-                CreateGroupPageView(
-                    selectedTab: $selectedTab,
-                    showCreateGroupPage: $showCreateGroupPage,
-                    availableFriends: friendsData,
-                    onSaveGroup: saveNewGroup
-                )
-            } else if showExpenseSelectionPage {
-                RecentSelectionPageView(
-                    recentFriends: recentFriends,
-                    recentGroups: recentGroups,
-                    onSelectItem: { item in
-                        openExpensePage(for: item)
-                    },
-                    selectedTab: $selectedTab,
-                    showExpenseSelectionPage: $showExpenseSelectionPage
-                )
-            } else {
-                switch selectedTab {
-                case .home:
-                    HomePageView(
-                        friendsData: filteredFriends,
-                        headerTitle: "Settle Up",
-                        selectedFilter: $selectedFilter,
-                        monthlyLimit: monthlyLimit,
-                        monthlySpent: currentMonthSpent,
-                        onSelectItem: { item in
-                            openFriendDetailPage(for: item)
-                        },
-                        onSettleUpTap: {
-                            showSettleUpSelectionPage = true
-                            selectedTab = .home
-                        }
-                    )
-
-                case .friends:
-                    FriendsPageView(
-                        selectedSection: $selectedSection,
-                        friendsData: filteredFriends,
-                        groupsData: filteredGroups,
-                        headerTitle: "Save",
-                        selectedFilter: $selectedFilter,
-                        totalYouOwe: friendsPageTotalYouOwe,
-                        totalYouAreOwed: friendsPageTotalYouAreOwed,
-                        onSelectItem: { item in
-                            if item.kind == .friend {
-                                openFriendDetailPage(for: item)
-                            } else {
-                                openExpensePage(for: item)
+                if showPlusMenu &&
+                    !showExpenseSelectionPage &&
+                    !showCreateGroupPage &&
+                    !showAddFriendPage &&
+                    !showFriendDetailPage &&
+                    !showSettleUpSelectionPage &&
+                    !showSettleUpPage &&
+                    selectedTab != .friends &&
+                    selectedTab != .activity &&
+                    selectedTab != .add {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                showPlusMenu = false
                             }
                         }
+                }
+
+                if showSettleUpPage, let friend = selectedSettleTarget {
+                    SettleUpPageView(
+                        friend: latestFriendVersion(for: friend),
+                        onBack: handleSettleUpBack,
+                        onSave: settleUpFriend
                     )
-
-                case .activity:
-                    ActivityPageView(transactions: activityTransactions)
-
-                case .profile:
-                    AccountPageView()
-
-                case .add:
-                    AddExpensePageView(
-                        selectedItem: selectedExpenseTarget,
-                        onSaveExpense: saveExpense,
-                        selectedTab: $selectedTab
+                } else if showSettleUpSelectionPage {
+                    SettleUpSelectionPageView(
+                        friends: filteredFriends,
+                        selectedTab: $selectedTab,
+                        showSettleUpSelectionPage: $showSettleUpSelectionPage,
+                        onSelectFriend: { friend in
+                            selectedSettleTarget = friend
+                            showSettleUpSelectionPage = false
+                            showSettleUpPage = true
+                            settleUpReturnToFriendDetail = false
+                        }
                     )
+                } else if showFriendDetailPage, let friend = selectedFriendDetail {
+                    FriendDetailPageView(
+                        friend: latestFriendVersion(for: friend),
+                        selectedTab: $selectedTab,
+                        showFriendDetailPage: $showFriendDetailPage,
+                        onAddExpense: { item in
+                            openExpensePage(for: item)
+                        },
+                        onSettleUp: { item in
+                            selectedSettleTarget = item
+                            showFriendDetailPage = false
+                            showSettleUpPage = true
+                            settleUpReturnToFriendDetail = true
+                        }
+                    )
+                } else if showAddFriendPage {
+                    AddFriendPageView(
+                        selectedTab: $selectedTab,
+                        showAddFriendPage: $showAddFriendPage,
+                        onSaveFriend: saveNewFriend
+                    )
+                } else if showCreateGroupPage {
+                    CreateGroupPageView(
+                        selectedTab: $selectedTab,
+                        showCreateGroupPage: $showCreateGroupPage,
+                        availableFriends: friendsData,
+                        onSaveGroup: saveNewGroup
+                    )
+                } else if showExpenseSelectionPage {
+                    RecentSelectionPageView(
+                        recentFriends: recentFriends,
+                        recentGroups: recentGroups,
+                        onSelectItem: { item in
+                            openExpensePage(for: item)
+                        },
+                        selectedTab: $selectedTab,
+                        showExpenseSelectionPage: $showExpenseSelectionPage
+                    )
+                } else {
+                    switch selectedTab {
+                    case .home:
+                        HomePageView(
+                            friendsData: filteredFriends,
+                            headerTitle: "Settle Up",
+                            selectedFilter: $selectedFilter,
+                            monthlyLimit: monthlyLimit,
+                            monthlySpent: currentMonthSpent,
+                            onSelectItem: { item in
+                                openFriendDetailPage(for: item)
+                            },
+                            onSettleUpTap: {
+                                showSettleUpSelectionPage = true
+                                selectedTab = .home
+                            },
+                            showThemeMenu: $showThemeMenu
+                        )
+
+                    case .friends:
+                        FriendsPageView(
+                            selectedSection: $selectedSection,
+                            friendsData: filteredFriends,
+                            groupsData: filteredGroups,
+                            headerTitle: "Save",
+                            selectedFilter: $selectedFilter,
+                            totalYouOwe: friendsPageTotalYouOwe,
+                            totalYouAreOwed: friendsPageTotalYouAreOwed,
+                            onSelectItem: { item in
+                                if item.kind == .friend {
+                                    openFriendDetailPage(for: item)
+                                } else {
+                                    openExpensePage(for: item)
+                                }
+                            },
+                            showThemeMenu: $showThemeMenu
+                        )
+
+                    case .activity:
+                        ActivityPageView(
+                            transactions: activityTransactions,
+                            showThemeMenu: $showThemeMenu
+                        )
+
+                    case .profile:
+                        AccountPageView(showThemeMenu: $showThemeMenu)
+
+                    case .add:
+                        AddExpensePageView(
+                            selectedItem: selectedExpenseTarget,
+                            onSaveExpense: saveExpense,
+                            selectedTab: $selectedTab
+                        )
+                    }
                 }
             }
+
+            if showThemeMenu {
+                ThemeSideMenuView(
+                    showThemeMenu: $showThemeMenu,
+                    selectedTheme: Binding<AppThemeMode>(
+                        get: {
+                            AppThemeMode(rawValue: savedThemeMode) ?? .auto
+                        },
+                        set: { newValue in
+                            savedThemeMode = newValue.rawValue
+                        }
+                    )
+                )
+                .zIndex(100)
+            }
         }
+        .preferredColorScheme(resolvedColorScheme)
         .safeAreaInset(edge: .bottom) {
-            if !showCreateGroupPage && !showAddFriendPage && !showFriendDetailPage && !showSettleUpSelectionPage && !showSettleUpPage {
+            if !showCreateGroupPage &&
+                !showAddFriendPage &&
+                !showFriendDetailPage &&
+                !showSettleUpSelectionPage &&
+                !showSettleUpPage {
                 CustomBottomBar(
                     selectedTab: $selectedTab,
                     selectedSection: selectedSection,
@@ -169,6 +218,29 @@ struct ContentView: View {
                 .padding(.horizontal, 5)
                 .padding(.bottom, -145)
             }
+        }
+        .onChange(of: selectedTab) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                showPlusMenu = false
+            }
+
+            if selectedTab != .friends {
+                showCreateGroupPage = false
+                showAddFriendPage = false
+                showFriendDetailPage = false
+            }
+        }
+    }
+
+    private var resolvedColorScheme: ColorScheme? {
+        switch AppThemeMode(rawValue: savedThemeMode) ?? .auto {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .auto:
+            let hour = Calendar.current.component(.hour, from: Date())
+            return (hour >= 6 && hour < 18) ? .light : .dark
         }
     }
 
@@ -190,11 +262,15 @@ struct ContentView: View {
     }
 
     private var friendsPageTotalYouOwe: Double {
-        currentFriendsPageItems.filter { $0.direction == .youOwe }.reduce(0) { $0 + $1.amount }
+        currentFriendsPageItems
+            .filter { $0.direction == .youOwe }
+            .reduce(0) { $0 + $1.amount }
     }
 
     private var friendsPageTotalYouAreOwed: Double {
-        currentFriendsPageItems.filter { $0.direction == .owesYou }.reduce(0) { $0 + $1.amount }
+        currentFriendsPageItems
+            .filter { $0.direction == .owesYou }
+            .reduce(0) { $0 + $1.amount }
     }
 
     private var filteredFriends: [BalanceItem] {
@@ -215,9 +291,12 @@ struct ContentView: View {
 
     private func applyFilter(to items: [BalanceItem]) -> [BalanceItem] {
         switch selectedFilter {
-        case .none: return items
-        case .youOwe: return items.filter { $0.direction == .youOwe }
-        case .owesYou: return items.filter { $0.direction == .owesYou }
+        case .none:
+            return items
+        case .youOwe:
+            return items.filter { $0.direction == .youOwe }
+        case .owesYou:
+            return items.filter { $0.direction == .owesYou }
         }
     }
 
@@ -236,9 +315,12 @@ struct ContentView: View {
 
     private func openExpensePage(for item: BalanceItem) {
         selectedExpenseTarget = item
+        showExpenseSelectionPage = false
         showFriendDetailPage = false
         showSettleUpSelectionPage = false
         showSettleUpPage = false
+        showCreateGroupPage = false
+        showAddFriendPage = false
         selectedTab = .add
         selectedSection = item.kind == .group ? .groups : .friends
     }
@@ -428,10 +510,23 @@ struct ContentView: View {
 
     private func inferCategory(from description: String) -> String {
         let text = description.lowercased()
-        if text.contains("food") || text.contains("dinner") || text.contains("lunch") || text.contains("breakfast") || text.contains("restaurant") || text.contains("grocer") || text.contains("cafe") || text.contains("coffee") { return "Food" }
-        if text.contains("uber") || text.contains("lyft") || text.contains("taxi") || text.contains("bus") || text.contains("train") || text.contains("flight") || text.contains("airport") || text.contains("gas") { return "Transport" }
-        if text.contains("shop") || text.contains("mall") || text.contains("walmart") || text.contains("target") || text.contains("amazon") || text.contains("clothes") { return "Shopping" }
-        if text.contains("trip") || text.contains("hotel") || text.contains("travel") || text.contains("vacation") { return "Travel" }
+
+        if text.contains("food") || text.contains("dinner") || text.contains("lunch") || text.contains("breakfast") || text.contains("restaurant") || text.contains("grocer") || text.contains("cafe") || text.contains("coffee") {
+            return "Food"
+        }
+
+        if text.contains("uber") || text.contains("lyft") || text.contains("taxi") || text.contains("bus") || text.contains("train") || text.contains("flight") || text.contains("airport") || text.contains("gas") {
+            return "Transport"
+        }
+
+        if text.contains("shop") || text.contains("mall") || text.contains("walmart") || text.contains("target") || text.contains("amazon") || text.contains("clothes") {
+            return "Shopping"
+        }
+
+        if text.contains("trip") || text.contains("hotel") || text.contains("travel") || text.contains("vacation") {
+            return "Travel"
+        }
+
         return "Other"
     }
 

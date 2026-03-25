@@ -9,6 +9,7 @@ struct FriendsPageView: View {
     let totalYouOwe: Double
     let totalYouAreOwed: Double
     let onSelectItem: (BalanceItem) -> Void
+    @Binding var showThemeMenu: Bool
 
     @State private var showFilterSheet = false
     @State private var searchText = ""
@@ -22,16 +23,15 @@ struct FriendsPageView: View {
                 .padding(.top, 8)
 
             summaryCard
-                .padding(.top, 8)
+                .padding(.top, 10)
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
+                VStack(spacing: 12) {
                     ForEach(filteredCurrentItems) { item in
                         Button {
                             onSelectItem(item)
                         } label: {
                             BalanceRow(item: item)
-                                .padding(.vertical, 6)
                                 .transition(
                                     .asymmetric(
                                         insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -44,11 +44,19 @@ struct FriendsPageView: View {
 
                     Spacer(minLength: 180)
                 }
-                .padding(.top, 10)
+                .padding(.top, 12)
                 .padding(.horizontal, 14)
                 .animation(.spring(response: 0.4, dampingFraction: 0.85), value: selectedSection)
             }
         }
+        .background(
+            LinearGradient(
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
         .sheet(isPresented: $showFilterSheet) {
             FilterPageView(selectedFilter: $selectedFilter)
         }
@@ -63,14 +71,8 @@ struct FriendsPageView: View {
 
     private var filteredCurrentItems: [BalanceItem] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if trimmed.isEmpty {
-            return currentItems
-        }
-
-        return currentItems.filter {
-            $0.name.localizedCaseInsensitiveContains(trimmed)
-        }
+        if trimmed.isEmpty { return currentItems }
+        return currentItems.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
     }
 
     private var searchPlaceholder: String {
@@ -95,6 +97,8 @@ struct FriendsPageView: View {
 
     private func headerView(title: String) -> some View {
         HStack {
+            ThemeHeaderButton(showThemeMenu: $showThemeMenu)
+
             Spacer()
 
             Text(title)
@@ -104,10 +108,7 @@ struct FriendsPageView: View {
                 .padding(.vertical, 10)
                 .background(
                     LinearGradient(
-                        colors: [
-                            Color(red: 0.75, green: 0.30, blue: 0.97),
-                            Color(red: 0.60, green: 0.24, blue: 0.90)
-                        ],
+                        colors: [AppPalette.accentStart, AppPalette.accentEnd],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -117,23 +118,24 @@ struct FriendsPageView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, -45)
-        .padding(.bottom, 0)
+        .padding(.bottom, -5)
     }
+
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             TextField(searchPlaceholder, text: $searchText)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
                 }
                 .buttonStyle(.plain)
             }
@@ -141,13 +143,13 @@ struct FriendsPageView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppPalette.searchField)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.06), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 4)
         )
     }
 
@@ -157,11 +159,11 @@ struct FriendsPageView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Overall")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppPalette.secondaryText)
 
                     Text(overallTitle)
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppPalette.primaryText)
                         .minimumScaleFactor(0.85)
                         .lineLimit(1)
                 }
@@ -175,7 +177,6 @@ struct FriendsPageView: View {
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(selectedFilter.tintColor)
                         .frame(width: 44, height: 44)
-                        .background(Color.clear)
                 }
                 .buttonStyle(.plain)
             }
@@ -186,15 +187,15 @@ struct FriendsPageView: View {
             HStack(spacing: 10) {
                 balancePill(
                     text: "Owe $\(formattedAmount(totalYouOwe))",
-                    bg: Color.red.opacity(0.08),
-                    textColor: Color.red.opacity(0.85),
+                    bg: Color.red.opacity(0.10),
+                    textColor: .red.opacity(0.88),
                     icon: "arrow.down.right"
                 )
 
                 balancePill(
                     text: "Owed $\(formattedAmount(totalYouAreOwed))",
-                    bg: Color.green.opacity(0.10),
-                    textColor: Color.green.opacity(0.85),
+                    bg: Color.green.opacity(0.12),
+                    textColor: .green.opacity(0.88),
                     icon: "arrow.up.right"
                 )
             }
@@ -211,12 +212,12 @@ struct FriendsPageView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 28)
-                        .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 6)
         )
         .padding(.horizontal, 12)
     }
@@ -230,7 +231,7 @@ struct FriendsPageView: View {
             VStack(spacing: 8) {
                 Text(title)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(selectedSection == type ? Color.purple : Color.gray)
+                    .foregroundColor(selectedSection == type ? AppPalette.accentMid : AppPalette.secondaryText)
                     .scaleEffect(selectedSection == type ? 1.03 : 1.0)
                     .lineLimit(1)
                     .minimumScaleFactor(0.9)
@@ -239,12 +240,12 @@ struct FriendsPageView: View {
 
                 ZStack {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.15))
+                        .fill(AppPalette.divider)
                         .frame(height: 1)
 
                     HStack {
                         Rectangle()
-                            .fill(selectedSection == type ? Color.purple : Color.clear)
+                            .fill(selectedSection == type ? AppPalette.accentMid : Color.clear)
                             .frame(height: 3)
                             .frame(maxWidth: .infinity)
                     }
@@ -273,8 +274,4 @@ struct FriendsPageView: View {
                 .fill(bg)
         )
     }
-}
-
-#Preview {
-    ContentView()
 }

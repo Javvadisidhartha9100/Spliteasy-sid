@@ -8,15 +8,15 @@ struct AddFriendPageView: View {
     @State private var friendName: String = ""
     @State private var contactText: String = ""
 
-    private let cardBorder = Color.purple.opacity(0.12)
-    private let cardShadow = Color.purple.opacity(0.08)
+    private let cardBorder = AppPalette.border
+    private let cardShadow = Color.black.opacity(0.08)
 
     var body: some View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.96, green: 0.95, blue: 1.0),
-                    Color.white
+                    AppPalette.backgroundTop,
+                    AppPalette.backgroundBottom
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -50,23 +50,24 @@ struct AddFriendPageView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .frame(width: 46, height: 46)
                         .shadow(color: cardShadow, radius: 8, x: 0, y: 4)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppPalette.primaryText)
                 }
             }
             .buttonStyle(.plain)
+            .padding(.top, -65)
 
             Spacer()
 
             Text("Add Friend")
                 .font(.system(size: 24, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
@@ -81,19 +82,20 @@ struct AddFriendPageView: View {
                     .background(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.54, green: 0.25, blue: 0.95),
-                                Color(red: 0.43, green: 0.20, blue: 0.86)
+                                AppPalette.accentStart,
+                                AppPalette.accentEnd
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .clipShape(Capsule())
-                    .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                    .shadow(color: AppPalette.accentMid.opacity(0.18), radius: 8, x: 0, y: 4)
                     .opacity(trimmedName.isEmpty ? 0.65 : 1.0)
             }
             .buttonStyle(.plain)
             .disabled(trimmedName.isEmpty)
+            .padding(.top, -65)
         }
     }
 
@@ -101,21 +103,21 @@ struct AddFriendPageView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Friend Name")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             TextField("Enter friend name", text: $friendName)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             Rectangle()
-                .fill(Color.purple.opacity(0.15))
+                .fill(AppPalette.border)
                 .frame(height: 1)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
                         .stroke(cardBorder, lineWidth: 1)
@@ -128,22 +130,28 @@ struct AddFriendPageView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Phone or Email")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
-            TextField("Enter phone number or email", text: $contactText)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.black)
-                .keyboardType(UIKeyboardType.emailAddress)
+            Group {
+                #if os(iOS)
+                TextField("Enter phone number or email", text: $contactText)
+                    .keyboardType(.emailAddress)
+                #else
+                TextField("Enter phone number or email", text: $contactText)
+                #endif
+            }
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundColor(AppPalette.primaryText)
 
             Rectangle()
-                .fill(Color.purple.opacity(0.15))
+                .fill(AppPalette.border)
                 .frame(height: 1)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
                         .stroke(cardBorder, lineWidth: 1)
@@ -157,7 +165,7 @@ struct AddFriendPageView: View {
             Text("Quick Actions")
                 .font(.system(size: 20, weight: .bold))
                 .italic()
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
 
             HStack(spacing: 12) {
                 previewButton(icon: "arrow.left.arrow.right", title: "Settle up")
@@ -170,17 +178,17 @@ struct AddFriendPageView: View {
         VStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                .foregroundColor(AppPalette.accentMid)
 
             Text(title)
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(AppPalette.primaryText)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 88)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(cardBorder, lineWidth: 1)
@@ -205,3 +213,7 @@ struct AddFriendPageView: View {
         selectedTab = .friends
     }
 }
+#Preview {
+    ContentView()
+}
+

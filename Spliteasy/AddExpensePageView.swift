@@ -21,10 +21,7 @@ struct AddExpensePageView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [
-                    Color(red: 0.96, green: 0.95, blue: 1.0),
-                    Color.white
-                ],
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -119,16 +116,17 @@ struct AddExpensePageView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white)
+                        .fill(AppPalette.card)
                         .frame(width: 46, height: 46)
-                        .shadow(color: Color.purple.opacity(0.08), radius: 8, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppPalette.primaryText)
                 }
             }
             .buttonStyle(.plain)
+            .padding(.top, -60)
 
             Spacer()
 
@@ -142,10 +140,7 @@ struct AddExpensePageView: View {
                     .padding(.vertical, 12)
                     .background(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.54, green: 0.25, blue: 0.95),
-                                Color(red: 0.43, green: 0.20, blue: 0.86)
-                            ],
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -156,6 +151,7 @@ struct AddExpensePageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveExpense)
+            .padding(.top, -60)
         }
     }
 
@@ -163,24 +159,24 @@ struct AddExpensePageView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("With")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             Text(withName)
                 .font(.system(size: 28, weight: .bold))
                 .italic()
-                .foregroundColor(Color(red: 0.10, green: 0.14, blue: 0.22))
+                .foregroundColor(AppPalette.primaryText)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
         )
     }
 
@@ -188,7 +184,7 @@ struct AddExpensePageView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Receipt")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             Button {
                 print("Camera tapped")
@@ -205,10 +201,7 @@ struct AddExpensePageView: View {
                 .padding(.vertical, 12)
                 .background(
                     LinearGradient(
-                        colors: [
-                            Color(red: 0.54, green: 0.25, blue: 0.95),
-                            Color(red: 0.43, green: 0.20, blue: 0.86)
-                        ],
+                        colors: [AppPalette.accentStart, AppPalette.accentEnd],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -223,33 +216,33 @@ struct AddExpensePageView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.08), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
         )
     }
 
     private func inputCard(icon: String, placeholder: String, text: Binding<String>) -> some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.purple.opacity(0.10))
+                .fill(AppPalette.rowIconBg)
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 21, weight: .semibold))
-                        .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                        .foregroundColor(AppPalette.accentMid)
                 )
 
             VStack(alignment: .leading, spacing: 8) {
                 TextField(placeholder, text: text)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Rectangle()
-                    .fill(Color.purple.opacity(0.15))
+                    .fill(AppPalette.border)
                     .frame(height: 1)
             }
         }
@@ -257,33 +250,33 @@ struct AddExpensePageView: View {
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.07), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 6)
         )
     }
 
     private var amountCard: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.purple.opacity(0.10))
+                .fill(AppPalette.rowIconBg)
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "dollarsign.square.fill")
                         .font(.system(size: 21, weight: .semibold))
-                        .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                        .foregroundColor(AppPalette.accentMid)
                 )
 
             VStack(alignment: .leading, spacing: 8) {
                 TextField("Enter amount", text: $amountText)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Rectangle()
-                    .fill(Color.purple.opacity(0.15))
+                    .fill(AppPalette.border)
                     .frame(height: 1)
             }
         }
@@ -291,12 +284,12 @@ struct AddExpensePageView: View {
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.07), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 6)
         )
     }
 
@@ -318,10 +311,7 @@ struct AddExpensePageView: View {
                     .padding(.vertical, 18)
                     .background(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.75, green: 0.30, blue: 0.97),
-                                Color(red: 0.60, green: 0.24, blue: 0.90)
-                            ],
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -340,16 +330,16 @@ struct AddExpensePageView: View {
                 } label: {
                     Text(customTitle)
                         .font(.system(size: 21, weight: .bold))
-                        .foregroundColor(Color(red: 0.18, green: 0.18, blue: 0.22))
+                        .foregroundColor(AppPalette.primaryText)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
-                        .background(Color.white)
+                        .background(AppPalette.card)
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                                .stroke(AppPalette.border, lineWidth: 1)
                         )
-                        .shadow(color: Color.purple.opacity(0.07), radius: 10, x: 0, y: 5)
+                        .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
                 }
                 .buttonStyle(.plain)
             }
@@ -360,12 +350,12 @@ struct AddExpensePageView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Customise")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundColor(Color(red: 0.18, green: 0.18, blue: 0.22))
+                .foregroundColor(AppPalette.primaryText)
 
             HStack(spacing: 8) {
                 Text("Paid by")
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Button {
                     splitEquallySelected = false
@@ -373,17 +363,17 @@ struct AddExpensePageView: View {
                 } label: {
                     Text(paidByTitle)
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                        .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(Color.purple.opacity(0.08))
+                        .background(AppPalette.rowIconBg)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
 
                 Text("and")
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Button {
                     splitEquallySelected = false
@@ -391,10 +381,10 @@ struct AddExpensePageView: View {
                 } label: {
                     Text(splitTitle)
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Color(red: 0.53, green: 0.28, blue: 0.95))
+                        .foregroundColor(AppPalette.accentMid)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(Color.purple.opacity(0.08))
+                        .background(AppPalette.rowIconBg)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -404,18 +394,18 @@ struct AddExpensePageView: View {
 
             Text("The payer does not need to be included in the split.")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color.purple.opacity(0.12), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.07), radius: 10, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
         )
     }
 
@@ -423,7 +413,7 @@ struct AddExpensePageView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Summary")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(AppPalette.secondaryText)
 
             Text(summaryText)
                 .font(.system(size: 20, weight: .bold))
@@ -434,12 +424,12 @@ struct AddExpensePageView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.07), radius: 10, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
         )
     }
 }
@@ -542,7 +532,7 @@ extension AddExpensePageView {
 
     private var summaryColor: Color {
         if calculatedAmount == 0 {
-            return .gray
+            return AppPalette.secondaryText
         }
         return activeDirection == .owesYou ? .green.opacity(0.9) : .red.opacity(0.85)
     }
@@ -594,7 +584,7 @@ struct GroupMemberPickerSheet: View {
             HStack {
                 Text(title)
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppPalette.primaryText)
 
                 Spacer()
 
@@ -602,12 +592,13 @@ struct GroupMemberPickerSheet: View {
                     dismiss()
                 }
                 .font(.system(size: 17, weight: .bold))
-                .foregroundColor(.purple)
+                .foregroundColor(AppPalette.accentMid)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
 
             Divider()
+                .background(AppPalette.divider)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -618,12 +609,12 @@ struct GroupMemberPickerSheet: View {
                             HStack {
                                 Text(person)
                                     .font(.system(size: 17, weight: .semibold))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(AppPalette.primaryText)
 
                                 Spacer()
 
                                 Image(systemName: selectedPeople.contains(person) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedPeople.contains(person) ? .purple : .gray.opacity(0.5))
+                                    .foregroundColor(selectedPeople.contains(person) ? AppPalette.accentMid : AppPalette.secondaryText.opacity(0.5))
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
@@ -631,11 +622,13 @@ struct GroupMemberPickerSheet: View {
                         .buttonStyle(.plain)
 
                         Divider()
+                            .background(AppPalette.divider)
                     }
                 }
             }
         }
         .presentationDetents([.medium, .large])
+        .background(AppPalette.backgroundBottom)
     }
 
     private func toggle(_ person: String) {
@@ -648,3 +641,8 @@ struct GroupMemberPickerSheet: View {
         }
     }
 }
+
+#Preview {
+    ContentView()
+}
+

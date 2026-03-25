@@ -1,22 +1,17 @@
-//
-//  AccountPageView.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/17/26.
-//
-
 import SwiftUI
 
 struct AccountPageView: View {
+    @Binding var showThemeMenu: Bool
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 headerSection
                     .padding(.horizontal, 20)
-                    .padding(.top, 6)
+                    .padding(.top, 0)
 
                 profileHeaderCard
-                    .padding(.top, 22)
+                    .padding(.top, 18)
                     .padding(.horizontal, 20)
 
                 infoCard
@@ -26,7 +21,7 @@ struct AccountPageView: View {
                 singleOptionCard(
                     iconName: "star",
                     iconColor: Color.orange,
-                    iconBackground: Color.orange.opacity(0.10),
+                    iconBackground: Color.orange.opacity(0.12),
                     title: "Feedback"
                 )
                 .padding(.top, 18)
@@ -35,7 +30,7 @@ struct AccountPageView: View {
                 singleOptionCard(
                     iconName: "message",
                     iconColor: Color.teal,
-                    iconBackground: Color.teal.opacity(0.10),
+                    iconBackground: Color.teal.opacity(0.12),
                     title: "Contact Us"
                 )
                 .padding(.top, 18)
@@ -46,13 +41,12 @@ struct AccountPageView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 34)
             }
+            .padding(.top, 8)
         }
+        .ignoresSafeArea(edges: .top)
         .background(
             LinearGradient(
-                colors: [
-                    Color(red: 0.96, green: 0.95, blue: 1.0),
-                    Color.white
-                ],
+                colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -62,20 +56,22 @@ struct AccountPageView: View {
 
     private var headerSection: some View {
         HStack {
-            Text("Profile")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Color(red: 0.10, green: 0.14, blue: 0.22))
+            ThemeHeaderButton(showThemeMenu: $showThemeMenu)
 
             Spacer()
 
             Button(action: {}) {
                 Image(systemName: "pencil")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppPalette.secondaryText)
                     .frame(width: 46, height: 46)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.gray.opacity(0.08))
+                            .fill(AppPalette.card)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(AppPalette.border, lineWidth: 1)
+                            )
                     )
             }
             .buttonStyle(.plain)
@@ -88,10 +84,7 @@ struct AccountPageView: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.54, green: 0.25, blue: 0.95),
-                                Color(red: 0.43, green: 0.20, blue: 0.86)
-                            ],
+                            colors: [AppPalette.accentStart, AppPalette.accentEnd],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -107,27 +100,30 @@ struct AccountPageView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Sidhartha Javvadi")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(red: 0.10, green: 0.14, blue: 0.22))
+                    .foregroundColor(AppPalette.primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
 
                 Text("javvadisidhartha9100@gmail.com")
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(Color.blue.opacity(0.9))
+                    .foregroundColor(Color.blue.opacity(0.92))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
             }
 
             Spacer()
         }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .appCardStyle()
     }
 
     private var infoCard: some View {
         VStack(spacing: 0) {
             settingsRow(
                 iconName: "bell",
-                iconColor: Color.purple.opacity(0.8),
-                iconBackground: Color.purple.opacity(0.10),
+                iconColor: Color.purple.opacity(0.85),
+                iconBackground: Color.purple.opacity(0.12),
                 title: "Notification",
                 trailingText: nil,
                 showCheck: false
@@ -138,8 +134,8 @@ struct AccountPageView: View {
 
             settingsRow(
                 iconName: "phone",
-                iconColor: Color.blue.opacity(0.8),
-                iconBackground: Color.blue.opacity(0.10),
+                iconColor: Color.blue.opacity(0.85),
+                iconBackground: Color.blue.opacity(0.12),
                 title: "Phone No",
                 trailingText: "—",
                 showCheck: false
@@ -150,8 +146,8 @@ struct AccountPageView: View {
 
             settingsRow(
                 iconName: "envelope",
-                iconColor: Color.pink.opacity(0.85),
-                iconBackground: Color.pink.opacity(0.10),
+                iconColor: Color.pink.opacity(0.90),
+                iconBackground: Color.pink.opacity(0.12),
                 title: "Email",
                 trailingText: "javvadisidhartha9100@gmail.com",
                 showCheck: true
@@ -159,12 +155,12 @@ struct AccountPageView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.purple.opacity(0.10), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
-                .shadow(color: Color.purple.opacity(0.05), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         )
     }
 
@@ -188,14 +184,14 @@ struct AccountPageView: View {
 
             Text(title)
                 .font(.system(size: 17, weight: .medium))
-                .foregroundColor(Color(red: 0.25, green: 0.29, blue: 0.37))
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
             if let trailingText {
                 Text(trailingText)
                     .font(.system(size: 13))
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppPalette.secondaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
@@ -207,7 +203,7 @@ struct AccountPageView: View {
             } else {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color.gray.opacity(0.4))
+                    .foregroundColor(AppPalette.secondaryText.opacity(0.7))
             }
         }
         .padding(.horizontal, 16)
@@ -232,22 +228,22 @@ struct AccountPageView: View {
 
             Text(title)
                 .font(.system(size: 17, weight: .medium))
-                .foregroundColor(Color(red: 0.25, green: 0.29, blue: 0.37))
+                .foregroundColor(AppPalette.primaryText)
 
             Spacer()
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color.gray.opacity(0.4))
+                .foregroundColor(AppPalette.secondaryText.opacity(0.7))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
+                .fill(AppPalette.card)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.purple.opacity(0.08), lineWidth: 1)
+                        .stroke(AppPalette.border, lineWidth: 1)
                 )
         )
     }
@@ -263,10 +259,7 @@ struct AccountPageView: View {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(
                             LinearGradient(
-                                colors: [
-                                    Color(red: 0.54, green: 0.25, blue: 0.95),
-                                    Color(red: 0.43, green: 0.20, blue: 0.86)
-                                ],
+                                colors: [AppPalette.accentStart, AppPalette.accentEnd],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -277,4 +270,3 @@ struct AccountPageView: View {
         .buttonStyle(.plain)
     }
 }
-
