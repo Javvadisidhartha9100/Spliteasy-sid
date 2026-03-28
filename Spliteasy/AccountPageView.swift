@@ -10,11 +10,12 @@ struct AppNotificationItem: Identifiable, Hashable {
 struct AccountPageView: View {
     @Binding var showThemeMenu: Bool
     @Binding var profileName: String
+    @Binding var profileNickname: String
     @Binding var profileEmail: String
     @Binding var profilePhone: String
 
     let notifications: [AppNotificationItem]
-    let onSaveProfile: (_ name: String, _ email: String, _ phone: String, _ password: String) -> Void
+    let onSaveProfile: (_ name: String, _ nickname: String, _ email: String, _ phone: String, _ password: String) -> Void
     let onSubmitFeedback: (_ rating: Int, _ message: String) -> Void
     let onContactSupport: (_ subject: String, _ message: String) -> Void
     let onSignOut: () -> Void
@@ -23,8 +24,6 @@ struct AccountPageView: View {
     @State private var showNotificationsSheet = false
     @State private var showFeedbackSheet = false
     @State private var showContactSheet = false
-
-    @State private var profileNickname: String = "SID"
     @State private var selectedAvatarIndex: Int = 0
 
     private let avatarOptions: [AvatarStyle] = [
@@ -124,7 +123,7 @@ struct AccountPageView: View {
                 onSave: { name, nickname, email, phone, password, avatarIndex in
                     profileNickname = nickname.isEmpty ? "SID" : nickname
                     selectedAvatarIndex = avatarIndex
-                    onSaveProfile(name, email, phone, password)
+                    onSaveProfile(name, nickname, email, phone, password)
                 }
             )
         }
@@ -198,7 +197,7 @@ struct AccountPageView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(profileNickname)
+                Text(profileNickname.isEmpty ? "SID" : profileNickname)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(AppPalette.primaryText)
                     .lineLimit(1)
@@ -450,6 +449,7 @@ struct EditProfileSheet: View {
                     sheetTextField(title: "Mobile Number", text: $phone, placeholder: "Enter mobile number", isPhone: true)
                     sheetTextField(title: "Email", text: $email, placeholder: "Enter email")
                     sheetTextField(title: "Nickname", text: $nickname, placeholder: "Enter nickname")
+
                     resetPasswordCard
                 }
                 .padding(20)
@@ -652,7 +652,8 @@ struct EditProfileSheet: View {
     private var canSaveProfile: Bool {
         let basicValid =
             !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
         if !showResetPassword {
             return basicValid

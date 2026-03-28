@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var showThemeMenu = false
 
     @State private var profileName: String = "Sidhartha Javvadi"
+    @State private var profileNickname: String = "SID"
     @State private var profileEmail: String = "javvadisidhartha9100@gmail.com"
     @State private var profilePhone: String = ""
     @State private var recentNotifications: [AppNotificationItem] = [
@@ -61,9 +62,27 @@ struct ContentView: View {
             if isLoggedIn {
                 mainAppView
             } else {
-                LoginPageView {
-                    isLoggedIn = true
-                }
+                LoginPageView(
+                    onLogin: {
+                        isLoggedIn = true
+                    },
+                    onSignUp: { name, nickname, email, phone in
+                        profileName = name
+                        profileNickname = nickname.isEmpty ? "SID" : nickname
+                        profileEmail = email
+                        profilePhone = phone
+                        isLoggedIn = true
+
+                        recentNotifications.insert(
+                            .init(
+                                title: "Account created",
+                                message: "Welcome to SplitEasy, \(nickname.isEmpty ? name : nickname).",
+                                timeText: "Now"
+                            ),
+                            at: 0
+                        )
+                    }
+                )
             }
         }
         .preferredColorScheme(resolvedColorScheme)
@@ -208,6 +227,7 @@ struct ContentView: View {
                         AccountPageView(
                             showThemeMenu: $showThemeMenu,
                             profileName: $profileName,
+                            profileNickname: $profileNickname,
                             profileEmail: $profileEmail,
                             profilePhone: $profilePhone,
                             notifications: recentNotifications,
@@ -633,8 +653,9 @@ struct ContentView: View {
         }
     }
 
-    private func saveProfile(name: String, email: String, phone: String, password: String) {
+    private func saveProfile(name: String, nickname: String, email: String, phone: String, password: String) {
         profileName = name.isEmpty ? profileName : name
+        profileNickname = nickname.isEmpty ? profileNickname : nickname
         profileEmail = email.isEmpty ? profileEmail : email
         profilePhone = phone
 
