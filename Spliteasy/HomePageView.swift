@@ -9,8 +9,10 @@ struct HomePageView: View {
     let onSelectItem: (BalanceItem) -> Void
     let onSettleUpTap: () -> Void
     @Binding var showThemeMenu: Bool
+    let onSaveMonthlyLimit: (Double) -> Void
 
     @State private var showFilterSheet = false
+    @State private var showMonthlyLimitSheet = false
     @State private var searchText = ""
 
     var body: some View {
@@ -51,6 +53,15 @@ struct HomePageView: View {
         )
         .sheet(isPresented: $showFilterSheet) {
             FilterPageView(selectedFilter: $selectedFilter)
+        }
+        .sheet(isPresented: $showMonthlyLimitSheet) {
+            MonthlyLimitSheet(
+                currentLimit: monthlyLimit,
+                onSave: { newLimit in
+                    onSaveMonthlyLimit(newLimit)
+                    showMonthlyLimitSheet = false
+                }
+            )
         }
     }
 
@@ -165,15 +176,27 @@ struct HomePageView: View {
 
                 Spacer(minLength: 10)
 
-                Button {
-                    showFilterSheet = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(selectedFilter.tintColor)
-                        .frame(width: 44, height: 44)
+                VStack(spacing: 10) {
+                    Button {
+                        showMonthlyLimitSheet = true
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(AppPalette.accentMid)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        showFilterSheet = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(selectedFilter.tintColor)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
@@ -194,7 +217,7 @@ struct HomePageView: View {
                                 )
                             )
                             .frame(
-                                width: max(16, geo.size.width * progressValue),
+                                width: monthlyLimit > 0 ? max(16, geo.size.width * progressValue) : 0,
                                 height: 16
                             )
                     }
@@ -202,13 +225,17 @@ struct HomePageView: View {
                 }
 
                 HStack {
-                    Text("\(Int(progressValue * 100))% used")
+                    Text(monthlyLimit > 0 ? "\(Int(progressValue * 100))% used" : "Set your limit")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(progressTint)
+                        .foregroundColor(monthlyLimit > 0 ? progressTint : AppPalette.accentMid)
 
                     Spacer()
 
-                    if monthlySpent <= monthlyLimit {
+                    if monthlyLimit <= 0 {
+                        Text("No limit set")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(AppPalette.secondaryText)
+                    } else if monthlySpent <= monthlyLimit {
                         Text("$\(formattedAmount(amountLeft)) left")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.green.opacity(0.90))
@@ -233,5 +260,93 @@ struct HomePageView: View {
                 .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 6)
         )
         .padding(.horizontal, 12)
+    }
+}
+
+struct MonthlyLimitSheet: View {
+    let currentLimit: Double
+    let onSave: (Double) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var amountText: String = ""
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Set Monthly Limit")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppPalette.primaryText)
+
+                TextField("Enter monthly limit", text: $amountText)
+                    .keyboardType(.decimalPad)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(AppPalette.primaryText)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(AppPalette.card)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(AppPalette.border, lineWidth: 1)
+                            )
+                    )
+
+                HStack(spacing: 12) {
+                    Button {
+                        amountText = "0"
+                    } label: {
+                        Text("Clear Limit")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(AppPalette.secondaryText)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(AppPalette.card)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .stroke(AppPalette.border, lineWidth: 1)
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        onSave(Double(amountText) ?? 0)
+                    } label: {
+                        Text("Save")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                LinearGradient(
+                                    colors: [AppPalette.accentStart, AppPalette.accentEnd],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+            }
+            .padding(20)
+            .background(
+                LinearGradient(
+                    colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
+            .onAppear {
+                amountText = currentLimit > 0 ? String(format: "%.2f", currentLimit) : ""
+            }
+        }
+        .presentationDetents([.medium])
     }
 }

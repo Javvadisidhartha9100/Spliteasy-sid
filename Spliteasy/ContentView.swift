@@ -166,7 +166,8 @@ struct ContentView: View {
                                 showSettleUpSelectionPage = true
                                 selectedTab = .home
                             },
-                            showThemeMenu: $showThemeMenu
+                            showThemeMenu: $showThemeMenu,
+                            onSaveMonthlyLimit: saveMonthlyLimit
                         )
 
                     case .friends:
@@ -865,6 +866,28 @@ struct ContentView: View {
         }
 
         return "Other"
+    }
+
+    private func saveMonthlyLimit(_ newLimit: Double) {
+        monthlyLimit = max(newLimit, 0)
+
+        FirebaseService.shared.updateCurrentUserProfile(
+            fullName: "",
+            nickname: profileName,
+            email: profileEmail,
+            phone: profilePhone,
+            monthlyLimit: monthlyLimit,
+            selectedAvatarIndex: 0
+        ) { _ in }
+
+        FirebaseService.shared.saveNotification(
+            title: "Monthly limit updated",
+            message: monthlyLimit > 0
+                ? "Your monthly limit was set to $\(String(format: "%.2f", monthlyLimit))."
+                : "Your monthly limit was cleared."
+        ) { _ in
+            loadNotificationsFromFirestore()
+        }
     }
 
     private func handleFriendsActionButtonTap() {
