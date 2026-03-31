@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum Tab {
+enum Tab: String, Sendable {
     case home
     case friends
     case activity
@@ -28,12 +28,12 @@ enum Tab {
     }
 }
 
-enum FriendsSection {
+enum FriendsSection: String, Sendable {
     case friends
     case groups
 }
 
-enum BalanceFilter {
+enum BalanceFilter: String, Sendable {
     case none
     case youOwe
     case owesYou
@@ -55,17 +55,17 @@ enum BalanceFilter {
     }
 }
 
-enum BalanceDirection {
+enum BalanceDirection: String, Codable, Sendable {
     case youOwe
     case owesYou
 }
 
-enum ItemKind {
+enum ItemKind: String, Codable, Sendable {
     case friend
     case group
 }
 
-struct ExpenseEntry: Identifiable, Hashable {
+struct ExpenseEntry: Identifiable, Hashable, Sendable {
     let id: String
     let description: String
     let amount: Double
@@ -87,14 +87,14 @@ struct ExpenseEntry: Identifiable, Hashable {
     }
 }
 
-struct GroupExpenseDraft: Hashable {
+struct GroupExpenseDraft: Hashable, Sendable {
     var paidBy: [String]
     var splitWith: [String]
     var yourNetAmount: Double
     var paidAmounts: [String: Double] = [:]
 }
 
-struct BalanceItem: Identifiable, Hashable {
+struct BalanceItem: Identifiable, Hashable, Sendable {
     let id: String
     let kind: ItemKind
     var name: String
@@ -138,7 +138,7 @@ struct BalanceItem: Identifiable, Hashable {
     }
 }
 
-enum ActivityChartType {
+enum ActivityChartType: String, Sendable {
     case category
     case month
 }
@@ -150,13 +150,13 @@ struct CategoryItem: Identifiable, Hashable {
     let color: Color
 }
 
-struct MonthlyExpense: Identifiable, Hashable {
+struct MonthlyExpense: Identifiable, Hashable, Sendable {
     let id = UUID()
     let month: String
     let amount: Double
 }
 
-struct TransactionItem: Identifiable, Hashable {
+struct TransactionItem: Identifiable, Hashable, Sendable {
     let id: String
     let title: String
     let subtitle: String
@@ -187,7 +187,7 @@ struct TransactionItem: Identifiable, Hashable {
     }
 }
 
-struct AppNotificationItem: Identifiable, Hashable {
+struct AppNotificationItem: Identifiable, Hashable, Sendable {
     let id: String
     let title: String
     let message: String

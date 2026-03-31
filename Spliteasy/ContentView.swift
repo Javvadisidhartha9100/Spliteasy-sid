@@ -501,8 +501,8 @@ struct ContentView: View {
                         selectedFriendDetail = friendsData[index]
                     }
 
-                case .failure:
-                    break
+                case .failure(let error):
+                    print("❌ fetchExpenseHistory failed: \(error.localizedDescription)")
                 }
             }
         }
@@ -532,8 +532,8 @@ struct ContentView: View {
                         selectedExpenseTarget = groupsData[index]
                     }
 
-                case .failure:
-                    break
+                case .failure(let error):
+                    print("❌ fetchGroupHistory failed: \(error.localizedDescription)")
                 }
             }
         }
@@ -823,8 +823,8 @@ struct ContentView: View {
                         selectedTab = .friends
                         selectedSection = .friends
 
-                    case .failure:
-                        break
+                    case .failure(let error):
+                        print("❌ saveExpense failed: \(error.localizedDescription)")
                     }
                 }
             }
@@ -881,8 +881,8 @@ struct ContentView: View {
                         selectedSection = .groups
                         selectedTab = .friends
 
-                    case .failure:
-                        break
+                    case .failure(let error):
+                        print("❌ group saveExpense failed: \(error.localizedDescription)")
                     }
                 }
             }
