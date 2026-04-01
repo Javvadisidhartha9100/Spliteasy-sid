@@ -228,7 +228,10 @@ struct ContentView: View {
                     case .add:
                         AddExpensePageView(
                             selectedItem: selectedExpenseTarget,
+                            availableFriends: friendsData.filter { !$0.isBlocked },
                             onSaveExpense: saveExpense,
+                            onAddMembersToGroup: addMembersToGroup,
+                            onDeleteGroup: deleteGroup,
                             selectedTab: $selectedTab
                         )
                     }
@@ -358,7 +361,6 @@ struct ContentView: View {
 
                     friendsData = records.map { record in
                         let existingFriend = previousFriends.first(where: { $0.id == record.documentId })
-
                         let preservedHistory = (existingFriend?.expenses ?? []).filter { $0.dateText != "Contact" }
                         let contactExpense: [ExpenseEntry] = record.friendContact.isEmpty ? [] : [
                             ExpenseEntry(
@@ -706,6 +708,73 @@ struct ContentView: View {
         }
     }
 
+    private func addMembersToGroup(_ group: BalanceItem, _ newMembers: [BalanceItem]) {
+        guard group.kind == .group else { return }
+
+        let existingNames = Set(group.memberNames)
+        let namesToAdd = newMembers
+            .map(\.name)
+            .filter { !existingNames.contains($0) }
+
+        guard !namesToAdd.isEmpty else { return }
+
+        let updatedMembers = group.memberNames + namesToAdd
+
+        FirebaseService.shared.updateGroupMembers(
+            groupDocumentId: group.id,
+            memberNames: updatedMembers
+        ) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    loadGroupsFromFirestore()
+                    loadGroupHistory(groupId: group.id)
+
+                    FirebaseService.shared.saveNotification(
+                        title: "Members added",
+                        message: "\(namesToAdd.count) member(s) were added to \(group.name)."
+                    ) { _ in
+                        loadNotificationsFromFirestore()
+                    }
+
+                case .failure:
+                    break
+                }
+            }
+        }
+    }
+
+    private func deleteGroup(_ group: BalanceItem) {
+        guard group.kind == .group else { return }
+
+        FirebaseService.shared.deleteGroup(groupDocumentId: group.id) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if selectedExpenseTarget?.id == group.id {
+                        selectedExpenseTarget = nil
+                    }
+
+                    loadGroupsFromFirestore()
+                    loadActivityFromFirestore()
+
+                    selectedTab = .friends
+                    selectedSection = .groups
+
+                    FirebaseService.shared.saveNotification(
+                        title: "Group deleted",
+                        message: "\(group.name) was deleted successfully."
+                    ) { _ in
+                        loadNotificationsFromFirestore()
+                    }
+
+                case .failure:
+                    break
+                }
+            }
+        }
+    }
+
     private func settleUpFriend(itemID: String, amount: Double, method: String) {
         guard let index = friendsData.firstIndex(where: { $0.id == itemID }) else { return }
         guard !friendsData[index].isBlocked else { return }
@@ -835,39 +904,27 @@ struct ContentView: View {
         if let groupIndex = groupsData.firstIndex(where: { $0.id == itemID }) {
             let group = groupsData[groupIndex]
 
-            let subtitle: String
-            if let groupDraft {
-                let payerDetails = groupDraft.paidBy.map { person in
-                    let paid = groupDraft.paidAmounts[person] ?? 0
-                    return "\(person) $\(String(format: "%.2f", paid))"
-                }.joined(separator: ", ")
-
-                subtitle = "Paid by \(payerDetails) · split with \(groupDraft.splitWith.count)"
-            } else {
-                subtitle = direction == .owesYou
-                    ? "You paid · \(group.participantCount) people"
-                    : "\(group.participantCount) people paid"
+            guard let groupDraft else {
+                return
             }
 
-            let payload = FirestoreExpensePayload(
-                targetType: "group",
-                targetDocumentId: itemID,
+            FirebaseService.shared.saveGroupExpenseAndUpdateFriends(
+                groupDocumentId: itemID,
+                groupName: group.name,
+                groupMemberNames: group.memberNames,
                 description: description,
-                amount: amount,
-                direction: direction,
+                totalAmount: amount,
                 category: category,
                 dateText: dayText,
                 monthKey: monthKey,
-                activitySubtitle: subtitle,
                 groupDraft: groupDraft,
                 receiptURL: receiptURL
-            )
-
-            FirebaseService.shared.saveExpense(payload: payload) { result in
+            ) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success:
                         loadGroupsFromFirestore()
+                        loadFriendsFromFirestore()
                         loadActivityFromFirestore()
                         loadGroupHistory(groupId: itemID)
 
@@ -882,7 +939,7 @@ struct ContentView: View {
                         selectedTab = .friends
 
                     case .failure(let error):
-                        print("❌ group saveExpense failed: \(error.localizedDescription)")
+                        print("❌ saveGroupExpenseAndUpdateFriends failed: \(error.localizedDescription)")
                     }
                 }
             }

@@ -74,7 +74,7 @@ struct SettleUpPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -65)
+            
 
             Spacer()
 
@@ -105,7 +105,7 @@ struct SettleUpPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSave)
-            .padding(.top, -65)
+            
         }
     }
 

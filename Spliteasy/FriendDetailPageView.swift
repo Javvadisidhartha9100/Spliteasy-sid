@@ -134,7 +134,7 @@ struct FriendDetailPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -65)
+            
 
             Spacer()
 
@@ -168,7 +168,7 @@ struct FriendDetailPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(isRefreshing)
-            .padding(.top, -65)
+            
         }
     }
 

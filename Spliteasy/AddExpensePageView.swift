@@ -5,7 +5,10 @@ import UIKit
 
 struct AddExpensePageView: View {
     let selectedItem: BalanceItem?
+    let availableFriends: [BalanceItem]
     let onSaveExpense: (String, String, Double, BalanceDirection, GroupExpenseDraft?, String?) -> Void
+    let onAddMembersToGroup: (BalanceItem, [BalanceItem]) -> Void
+    let onDeleteGroup: (BalanceItem) -> Void
     @Binding var selectedTab: Tab
 
     @State private var withName: String = ""
@@ -22,6 +25,10 @@ struct AddExpensePageView: View {
     @State private var showSplitPicker = false
 
     @State private var paidAmountsText: [String: String] = [:]
+
+    @State private var showAddMembersSheet = false
+    @State private var selectedNewMemberIDs: Set<String> = []
+    @State private var showDeleteGroupConfirm = false
 
     #if os(iOS)
     @State private var receiptImage: UIImage?
@@ -65,6 +72,10 @@ struct AddExpensePageView: View {
                             payerAmountsCard
                         }
 
+                        if isGroup {
+                            groupManagementCard
+                        }
+
                         if enteredAmount > 0 {
                             summaryCard
                         }
@@ -98,11 +109,30 @@ struct AddExpensePageView: View {
                 selectedPeople: $selectedSplitPeople
             )
         }
+        .sheet(isPresented: $showAddMembersSheet) {
+            AddGroupMembersSheet(
+                availableFriends: addableFriends,
+                selectedFriendIDs: $selectedNewMemberIDs,
+                onSave: addSelectedMembers
+            )
+        }
         #if os(iOS)
         .sheet(isPresented: $showReceiptPicker) {
             ImagePicker(image: $receiptImage)
         }
         #endif
+        .confirmationDialog(
+            "Delete Group",
+            isPresented: $showDeleteGroupConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Group", role: .destructive) {
+                deleteCurrentGroup()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This group will be deleted from your app and database.")
+        }
         .onAppear {
             withName = selectedItem?.name ?? ""
             if isGroup {
@@ -127,6 +157,7 @@ struct AddExpensePageView: View {
             #endif
             receiptURL = ""
             isUploadingReceipt = false
+            selectedNewMemberIDs = []
         }
     }
 
@@ -149,11 +180,18 @@ struct AddExpensePageView: View {
         return values.isEmpty ? ["YOU"] : values.sorted()
     }
 
+    private var addableFriends: [BalanceItem] {
+        guard let selectedItem, selectedItem.kind == .group else { return [] }
+
+        let existingNames = Set(selectedItem.memberNames)
+        return availableFriends.filter { !existingNames.contains($0.name) }
+    }
+
     private var headerView: some View {
         HStack {
             Button {
                 withAnimation(.easeInOut(duration: 0.25)) {
-                    selectedTab = selectedItem?.kind == .group ? .friends : .home
+                    selectedTab = .friends
                 }
             } label: {
                 ZStack {
@@ -168,7 +206,7 @@ struct AddExpensePageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -45)
+            
 
             Spacer()
 
@@ -203,7 +241,7 @@ struct AddExpensePageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveExpense || isUploadingReceipt)
-            .padding(.top, -45)
+            
         }
     }
 
@@ -580,6 +618,107 @@ struct AddExpensePageView: View {
         )
     }
 
+    private var groupManagementCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Manage Group")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(AppPalette.primaryText)
+
+            Button {
+                selectedNewMemberIDs = []
+                showAddMembersSheet = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(AppPalette.accentMid.opacity(0.12))
+                            .frame(width: 50, height: 50)
+
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(AppPalette.accentMid)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Add Members")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(AppPalette.primaryText)
+
+                        Text("Add friends who are not already in this group")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(AppPalette.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(AppPalette.secondaryText)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(groupActionBackground)
+            }
+            .buttonStyle(.plain)
+            .disabled(addableFriends.isEmpty)
+            .opacity(addableFriends.isEmpty ? 0.6 : 1)
+
+            Button {
+                showDeleteGroupConfirm = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color.red.opacity(0.12))
+                            .frame(width: 50, height: 50)
+
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.red.opacity(0.9))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Delete Group")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(AppPalette.primaryText)
+
+                        Text("Delete this group from app and database")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(AppPalette.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(AppPalette.secondaryText)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(groupActionBackground)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(AppPalette.card)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(AppPalette.border, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
+        )
+    }
+
+    private var groupActionBackground: some View {
+        RoundedRectangle(cornerRadius: 22, style: .continuous)
+            .fill(AppPalette.searchField)
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(AppPalette.border, lineWidth: 1)
+            )
+    }
+
     @ViewBuilder
     private func paidAmountField(for person: String) -> some View {
         #if os(iOS)
@@ -818,6 +957,22 @@ extension AddExpensePageView {
         return true
     }
 
+    private func addSelectedMembers() {
+        guard let selectedItem, selectedItem.kind == .group else { return }
+
+        let newMembers = addableFriends.filter { selectedNewMemberIDs.contains($0.id) }
+        guard !newMembers.isEmpty else { return }
+
+        onAddMembersToGroup(selectedItem, newMembers)
+        showAddMembersSheet = false
+        selectedNewMemberIDs = []
+    }
+
+    private func deleteCurrentGroup() {
+        guard let selectedItem, selectedItem.kind == .group else { return }
+        onDeleteGroup(selectedItem)
+    }
+
     private func saveExpense() {
         guard let selectedItem else { return }
         guard canSaveExpense else { return }
@@ -861,7 +1016,7 @@ extension AddExpensePageView {
                         )
                     }
 
-                    resetAfterSave(for: selectedItem)
+                    resetAfterSave()
                 }
             }
             return
@@ -876,10 +1031,10 @@ extension AddExpensePageView {
             draft,
             nil
         )
-        resetAfterSave(for: selectedItem)
+        resetAfterSave()
     }
 
-    private func resetAfterSave(for item: BalanceItem) {
+    private func resetAfterSave() {
         descriptionText = ""
         amountText = ""
         paidAmountsText = [:]
@@ -961,6 +1116,122 @@ struct GroupMemberPickerSheet: View {
             selectedPeople.remove(person)
         } else {
             selectedPeople.insert(person)
+        }
+    }
+}
+
+struct AddGroupMembersSheet: View {
+    let availableFriends: [BalanceItem]
+    @Binding var selectedFriendIDs: Set<String>
+    let onSave: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                if availableFriends.isEmpty {
+                    VStack(spacing: 12) {
+                        Spacer()
+
+                        Image(systemName: "person.3")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(AppPalette.secondaryText)
+
+                        Text("No more friends to add")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(AppPalette.primaryText)
+
+                        Text("All your available friends are already in this group.")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(AppPalette.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+
+                        Spacer()
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(availableFriends) { friend in
+                                Button {
+                                    toggle(friend.id)
+                                } label: {
+                                    HStack(spacing: 14) {
+                                        Circle()
+                                            .fill(AppPalette.accentMid.opacity(0.14))
+                                            .frame(width: 48, height: 48)
+                                            .overlay(
+                                                Text(String(friend.name.prefix(1)))
+                                                    .font(.system(size: 20, weight: .bold))
+                                                    .foregroundColor(AppPalette.accentMid)
+                                            )
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(friend.name)
+                                                .font(.system(size: 17, weight: .bold))
+                                                .foregroundColor(AppPalette.primaryText)
+
+                                            Text("Friend")
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundColor(AppPalette.secondaryText)
+                                        }
+
+                                        Spacer()
+
+                                        Image(systemName: selectedFriendIDs.contains(friend.id) ? "checkmark.circle.fill" : "circle")
+                                            .font(.system(size: 22, weight: .semibold))
+                                            .foregroundColor(selectedFriendIDs.contains(friend.id) ? AppPalette.accentMid : AppPalette.secondaryText.opacity(0.5))
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .fill(AppPalette.card)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                                    .stroke(AppPalette.border, lineWidth: 1)
+                                            )
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(20)
+                    }
+                }
+            }
+            .navigationTitle("Add Members")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onSave()
+                    }
+                    .disabled(selectedFriendIDs.isEmpty)
+                }
+            }
+            .background(
+                LinearGradient(
+                    colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func toggle(_ id: String) {
+        if selectedFriendIDs.contains(id) {
+            selectedFriendIDs.remove(id)
+        } else {
+            selectedFriendIDs.insert(id)
         }
     }
 }

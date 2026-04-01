@@ -70,7 +70,7 @@ struct CreateGroupPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -60)
+            
 
             Spacer()
 
@@ -105,7 +105,7 @@ struct CreateGroupPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveGroup)
-            .padding(.top, -60)
+            
         }
     }
 

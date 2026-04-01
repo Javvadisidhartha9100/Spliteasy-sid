@@ -60,7 +60,7 @@ struct AddFriendPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -60)
+            
 
             Spacer()
 
@@ -95,7 +95,7 @@ struct AddFriendPageView: View {
             }
             .buttonStyle(.plain)
             .disabled(trimmedName.isEmpty)
-            .padding(.top, -60)
+            
         }
     }
 

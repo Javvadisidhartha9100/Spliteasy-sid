@@ -574,9 +574,7 @@ final class FirebaseService {
         friendDocumentId: String,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        let friendRef = db.collection("friendships").document(friendDocumentId)
-
-        friendRef.delete { error in
+        db.collection("friendships").document(friendDocumentId).delete { error in
             if let error {
                 completion(.failure(error))
             } else {
@@ -616,6 +614,45 @@ final class FirebaseService {
                 completion(.failure(error))
             } else {
                 completion(.success(ref.documentID))
+            }
+        }
+    }
+
+    func updateGroupMembers(
+        groupDocumentId: String,
+        memberNames: [String],
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        let cleanedMembers = Array(
+            Set(
+                memberNames
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            )
+        ).sorted()
+
+        db.collection("groups").document(groupDocumentId).setData([
+            "memberNames": cleanedMembers,
+            "participantCount": cleanedMembers.count + 1,
+            "updatedAt": FieldValue.serverTimestamp()
+        ], merge: true) { error in
+            if let error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
+    }
+
+    func deleteGroup(
+        groupDocumentId: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        db.collection("groups").document(groupDocumentId).delete { error in
+            if let error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
             }
         }
     }
@@ -926,6 +963,162 @@ final class FirebaseService {
                 }
             }
         }
+    }
+
+    func saveGroupExpenseAndUpdateFriends(
+        groupDocumentId: String,
+        groupName: String,
+        groupMemberNames: [String],
+        description: String,
+        totalAmount: Double,
+        category: String,
+        dateText: String,
+        monthKey: String,
+        groupDraft: GroupExpenseDraft,
+        receiptURL: String?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        guard let uid = currentUserId else {
+            completion(.success(()))
+            return
+        }
+
+        let groupRef = db.collection("groups").document(groupDocumentId)
+        let expenseRef = db.collection("expenses").document()
+        let activityRef = db.collection("users").document(uid).collection("activity").document()
+
+        db.collection("friendships")
+            .whereField("ownerUserId", isEqualTo: uid)
+            .getDocuments { [weak self] snapshot, error in
+                if let error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let self = self else { return }
+
+                let friendshipDocs = snapshot?.documents ?? []
+                let friendshipByName: [String: QueryDocumentSnapshot] = Dictionary(
+                    uniqueKeysWithValues: friendshipDocs.map {
+                        (
+                            ($0.data()["friendName"] as? String ?? "")
+                                .trimmingCharacters(in: .whitespacesAndNewlines),
+                            $0
+                        )
+                    }
+                )
+
+                self.db.runTransaction({ transaction, errorPointer in
+                    let groupSnapshot: DocumentSnapshot
+                    do {
+                        groupSnapshot = try transaction.getDocument(groupRef)
+                    } catch let error as NSError {
+                        errorPointer?.pointee = error
+                        return nil
+                    }
+
+                    let currentAmount = groupSnapshot.data()?["balanceAmount"] as? Double ?? 0
+                    let currentDirection = groupSnapshot.data()?["balanceDirection"] as? String ?? "owesYou"
+                    let signedCurrent = currentDirection == "owesYou" ? currentAmount : -currentAmount
+
+                    let signedChange = groupDraft.yourNetAmount
+                    let signedUpdated = signedCurrent + signedChange
+
+                    let updatedAmount = abs(signedUpdated)
+                    let updatedDirection = signedUpdated >= 0 ? "owesYou" : "youOwe"
+
+                    let actualTotalFromPaidAmounts = groupDraft.paidAmounts.values.reduce(0, +)
+                    let finalTotalAmount = actualTotalFromPaidAmounts > 0 ? actualTotalFromPaidAmounts : totalAmount
+
+                    let splitParticipants = groupDraft.splitWith
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .filter { !$0.isEmpty }
+
+                    let splitCount = max(splitParticipants.count, 1)
+                    let perPersonShare = finalTotalAmount / Double(splitCount)
+                    let yourOwnShare = splitParticipants.contains(where: { $0.uppercased() == "YOU" })
+                        ? perPersonShare
+                        : 0
+
+                    let expenseData: [String: Any] = [
+                        "ownerUserId": uid,
+                        "targetType": "group",
+                        "targetDocumentId": groupDocumentId,
+                        "description": description,
+                        "amount": finalTotalAmount,
+                        "category": category,
+                        "dateText": dateText,
+                        "monthKey": monthKey,
+                        "createdAt": FieldValue.serverTimestamp(),
+                        "paidBy": groupDraft.paidBy,
+                        "splitWith": groupDraft.splitWith,
+                        "yourNetAmount": groupDraft.yourNetAmount,
+                        "paidAmounts": groupDraft.paidAmounts,
+                        "yourOwnShare": yourOwnShare,
+                        "receiptURL": receiptURL ?? ""
+                    ]
+
+                    transaction.setData(expenseData, forDocument: expenseRef)
+
+                    transaction.setData([
+                        "balanceAmount": updatedAmount,
+                        "balanceDirection": updatedDirection,
+                        "updatedAt": FieldValue.serverTimestamp()
+                    ], forDocument: groupRef, merge: true)
+
+                    let normalizedFriendNames = Set(
+                        (groupMemberNames + groupDraft.paidBy + groupDraft.splitWith)
+                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                            .filter { !$0.isEmpty && $0.uppercased() != "YOU" }
+                    )
+
+                    for friendName in normalizedFriendNames {
+                        guard let friendDoc = friendshipByName[friendName] else { continue }
+
+                        let friendRef = friendDoc.reference
+                        let friendData = friendDoc.data()
+
+                        let friendAmount = friendData["balanceAmount"] as? Double ?? 0
+                        let friendDirection = friendData["balanceDirection"] as? String ?? "owesYou"
+                        let signedFriend = friendDirection == "owesYou" ? friendAmount : -friendAmount
+
+                        let friendPaidAmount = groupDraft.paidAmounts[friendName] ?? 0
+                        let friendSplitShare = splitParticipants.contains(friendName) ? perPersonShare : 0
+                        let signedFriendChange = friendSplitShare - friendPaidAmount
+                        let updatedFriendSigned = signedFriend + signedFriendChange
+
+                        let finalFriendAmount = abs(updatedFriendSigned)
+                        let finalFriendDirection = updatedFriendSigned >= 0 ? "owesYou" : "youOwe"
+
+                        transaction.setData([
+                            "balanceAmount": finalFriendAmount,
+                            "balanceDirection": finalFriendDirection,
+                            "updatedAt": FieldValue.serverTimestamp()
+                        ], forDocument: friendRef, merge: true)
+                    }
+
+                    let activityData: [String: Any] = [
+                        "title": description,
+                        "subtitle": "Group · \(groupName)",
+                        "amount": yourOwnShare,
+                        "date": dateText,
+                        "monthKey": monthKey,
+                        "category": category,
+                        "entryType": "expense",
+                        "createdAt": FieldValue.serverTimestamp()
+                    ]
+
+                    transaction.setData(activityData, forDocument: activityRef)
+
+                    return nil
+                }) { _, error in
+                    if let error {
+                        completion(.failure(error))
+                    } else {
+                        completion(.success(()))
+                    }
+                }
+            }
     }
 
     func saveSettlement(

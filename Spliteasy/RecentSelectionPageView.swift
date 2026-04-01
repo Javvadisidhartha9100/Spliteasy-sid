@@ -55,7 +55,7 @@ struct RecentSelectionPageView: View {
                     .foregroundColor(AppPalette.primaryText)
             }
             .buttonStyle(.plain)
-            .padding(.top, -50)
+            
 
             Spacer()
 

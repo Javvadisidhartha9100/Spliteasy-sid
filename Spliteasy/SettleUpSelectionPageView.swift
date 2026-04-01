@@ -107,7 +107,7 @@ struct SettleUpSelectionPageView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.top, -65)
+            
 
             Spacer()
 
