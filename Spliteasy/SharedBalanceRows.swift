@@ -1,4 +1,7 @@
 //
+// Shared row views used by home/friends pages so the UI stays consistent.
+//
+//
 //  SharedBalanceRows.swift
 //  Spliteasy
 //
@@ -9,6 +12,8 @@ import SwiftUI
 
 struct BalanceRow: View {
     let item: BalanceItem
+    // Main screen layout
+
 
     var body: some View {
         HStack(spacing: 14) {

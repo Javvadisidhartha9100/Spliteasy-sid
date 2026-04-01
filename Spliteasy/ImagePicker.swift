@@ -1,10 +1,6 @@
 //
-//  ImagePicker.swift
-//  Spliteasy
-//
-//  Created by SIDHARTHA JAVVADI on 3/27/26.
-//
-
+// Small wrapper around the iOS photo picker so images can be selected
+// for profile photos or receipts.
 //
 //  ImagePicker.swift
 //  Spliteasy
@@ -62,6 +58,8 @@ struct ImagePicker: UIViewControllerRepresentable {
 #else
 
 struct ImagePicker: View {
+    // Main screen layout
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "photo")

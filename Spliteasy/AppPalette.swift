@@ -1,14 +1,11 @@
-//
 //  AppPalette.swift
 //  Spliteasy
-//
 //  Created by SIDHARTHA JAVVADI on 3/24/26.
 //
+// Central place for app colors so the same theme is used across the app.
+//
+//
 
-//
-//  AppPalette.swift
-//  Spliteasy
-//
 
 import SwiftUI
 

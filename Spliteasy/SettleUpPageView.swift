@@ -1,4 +1,7 @@
 //
+// Page used to save a settlement for a selected friend.
+//
+//
 //  SettleUpPageView.swift
 //  Spliteasy
 //
@@ -17,6 +20,8 @@ struct SettleUpPageView: View {
     @State private var showMethodPicker = false
 
     private let themePurple = AppPalette.accentMid
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -56,6 +61,8 @@ struct SettleUpPageView: View {
             amountText = String(format: "%.2f", friend.amount)
         }
     }
+    // Top bar / page heading
+
 
     private var headerView: some View {
         HStack {
@@ -250,6 +257,3 @@ struct SettleUpPageView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}

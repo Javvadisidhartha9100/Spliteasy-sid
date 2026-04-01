@@ -1,7 +1,17 @@
+//  ContentView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/4/26.
+//
+//
+// Main entry screen after login. This file controls tab navigation,
+// page switching, and loading data from Firebase.
+//
 import SwiftUI
 import FirebaseAuth
 
 struct ContentView: View {
+    // A lot of navigation state is kept here because this is the app shell.
     @State private var selectedTab: Tab = .home
     @State private var selectedSection: FriendsSection = .friends
     @State private var showPlusMenu = false
@@ -32,6 +42,8 @@ struct ContentView: View {
     @State private var friendsData: [BalanceItem] = []
     @State private var groupsData: [BalanceItem] = []
     @State private var activityTransactions: [TransactionItem] = []
+    // Main screen layout
+
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -306,6 +318,8 @@ struct ContentView: View {
             return (hour >= 6 && hour < 18) ? .light : .dark
         }
     }
+    // When the app opens, check if Firebase still has an active session.
+
 
     private func checkExistingSession() {
         if FirebaseService.shared.currentUserId != nil {
@@ -315,6 +329,8 @@ struct ContentView: View {
             isCheckingSession = false
         }
     }
+    // After login/signup, load the user profile and app data.
+
 
     private func handleSuccessfulAuth() {
         FirebaseService.shared.fetchCurrentUserProfile { result in
@@ -351,6 +367,8 @@ struct ContentView: View {
             }
         }
     }
+    // Pull latest friend records and map them into app models.
+
 
     private func loadFriendsFromFirestore() {
         FirebaseService.shared.fetchFriends { result in
@@ -398,6 +416,8 @@ struct ContentView: View {
             }
         }
     }
+    // Pull latest group records and map them into app models.
+
 
     private func loadGroupsFromFirestore() {
         FirebaseService.shared.fetchGroups { result in
@@ -817,6 +837,8 @@ struct ContentView: View {
             }
         }
     }
+    // Decides whether the new expense belongs to a friend or a group.
+
 
     private func saveExpense(
         itemID: String,

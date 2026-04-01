@@ -1,4 +1,8 @@
 //
+// Lets the user choose how a friend expense should be split.
+// Only UI selection is handled here.
+//
+//
 //  CustomSplitPageView.swift
 //  Spliteasy
 //
@@ -42,6 +46,8 @@ struct CustomSplitPageView: View {
     let participantCount: Int
 
     @Environment(\.dismiss) private var dismiss
+    // Main screen layout
+
 
     var body: some View {
         ZStack {

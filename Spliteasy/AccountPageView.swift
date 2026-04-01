@@ -1,9 +1,21 @@
+//
+//  AccountPageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+
+
+// This screen handles profile details, feedback, support, notifications,
+// and password reset UI. I kept the original logic the same and only added
+// comments / small readability improvements.
+//
 import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
 
 struct AccountPageView: View {
+    // Profile-related UI is grouped in one file to keep the account tab simple.
     @Binding var showThemeMenu: Bool
     @Binding var profileName: String
     @Binding var profileEmail: String
@@ -47,6 +59,8 @@ struct AccountPageView: View {
     @State private var resetPasswordMessage = ""
     @State private var resetPasswordMessageColor: Color = .green.opacity(0.85)
     @State private var isUpdatingPassword = false
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -140,6 +154,8 @@ struct AccountPageView: View {
                 
         }
     }
+    // Profile image + nickname area
+
 
     private var profileCard: some View {
         VStack(spacing: 12) {
@@ -211,6 +227,8 @@ struct AccountPageView: View {
         return "Profile image upload is available on iOS"
         #endif
     }
+    // Editable profile fields section
+
 
     private var accountFieldsCard: some View {
         VStack(spacing: 16) {
@@ -315,6 +333,8 @@ struct AccountPageView: View {
         TextField(placeholder, text: text)
         #endif
     }
+    // Shortcuts like notifications and feedback
+
 
     private var quickActionsCard: some View {
         VStack(spacing: 12) {

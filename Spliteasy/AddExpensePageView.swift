@@ -1,9 +1,21 @@
+//
+//  AddExpensePageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// This page is used to add a new expense for either a friend or a group.
+// Different UI parts are shown depending on the selected item.
+//
 import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
 
 struct AddExpensePageView: View {
+    // This screen supports two situations:
+    // 1) normal friend expense
+    // 2) group expense with split/payer selection
     let selectedItem: BalanceItem?
     let availableFriends: [BalanceItem]
     let onSaveExpense: (String, String, Double, BalanceDirection, GroupExpenseDraft?, String?) -> Void
@@ -36,6 +48,8 @@ struct AddExpensePageView: View {
     @State private var showReceiptPicker = false
     @State private var receiptURL: String = ""
     @State private var isUploadingReceipt = false
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -160,6 +174,8 @@ struct AddExpensePageView: View {
             selectedNewMemberIDs = []
         }
     }
+    // Quick check used to switch between friend and group UI.
+
 
     private var isGroup: Bool {
         selectedItem?.kind == .group
@@ -186,6 +202,8 @@ struct AddExpensePageView: View {
         let existingNames = Set(selectedItem.memberNames)
         return availableFriends.filter { !existingNames.contains($0.name) }
     }
+    // Top bar / page heading
+
 
     private var headerView: some View {
         HStack {
@@ -617,6 +635,8 @@ struct AddExpensePageView: View {
                 .shadow(color: Color.black.opacity(0.07), radius: 10, x: 0, y: 5)
         )
     }
+    // Extra actions that only make sense for groups.
+
 
     private var groupManagementCard: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -752,6 +772,9 @@ struct AddExpensePageView: View {
             )
         #endif
     }
+    // Summary card shown near the top of the page
+    // Live preview so the user can see the result before saving.
+
 
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 10) {

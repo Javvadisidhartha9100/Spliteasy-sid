@@ -1,4 +1,7 @@
 //
+// Login and signup page with forgot password support.
+//
+//
 //  LoginPageView.swift
 //  Spliteasy
 //
@@ -30,6 +33,8 @@ struct LoginPageView: View {
     @State private var successMessage = ""
 
     let onLogin: () -> Void
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -534,6 +539,8 @@ struct ForgotPasswordPageView: View {
             }
         }
     }
+    // Top bar / page heading
+
 
     private var headerView: some View {
         HStack {

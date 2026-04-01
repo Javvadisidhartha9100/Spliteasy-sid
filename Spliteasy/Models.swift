@@ -1,3 +1,12 @@
+//
+//
+//  Models.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Shared data models used across the app.
+//
 import SwiftUI
 
 enum Tab: String, Sendable {

@@ -1,4 +1,7 @@
 //
+// App starting point. Firebase is configured once when the app launches.
+//
+//
 //  SpliteasyApp.swift
 //  Spliteasy
 //

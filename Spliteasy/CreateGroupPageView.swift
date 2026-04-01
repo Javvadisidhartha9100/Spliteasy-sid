@@ -1,3 +1,11 @@
+//
+//  CreateGroupPageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Used to create a group, choose members, and select group type.
+//
 import SwiftUI
 
 struct CreateGroupPageView: View {
@@ -15,6 +23,8 @@ struct CreateGroupPageView: View {
     private let cardBorder = AppPalette.border
     private let cardShadow = Color.black.opacity(0.08)
     private let iconTint = AppPalette.accentMid
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -49,6 +59,8 @@ struct CreateGroupPageView: View {
             }
         }
     }
+    // Top bar / page heading
+
 
     private var headerSection: some View {
         HStack {

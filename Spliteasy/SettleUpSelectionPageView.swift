@@ -1,4 +1,7 @@
 //
+// Lets the user choose which friend they want to settle up with.
+//
+//
 //  SettleUpSelectionPageView.swift
 //  Spliteasy
 //
@@ -14,6 +17,8 @@ struct SettleUpSelectionPageView: View {
     let onSelectFriend: (BalanceItem) -> Void
 
     @State private var searchText = ""
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -88,6 +93,8 @@ struct SettleUpSelectionPageView: View {
             }
         }
     }
+    // Top bar / page heading
+
 
     private var headerView: some View {
         HStack {
@@ -121,6 +128,8 @@ struct SettleUpSelectionPageView: View {
             Color.clear.frame(width: 46, height: 46)
         }
     }
+    // Search UI for quick filtering on the page
+
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -163,7 +172,4 @@ struct SettleUpSelectionPageView: View {
         let colors: [Color] = [AppPalette.accentMid, AppPalette.accentStart, .green, .pink]
         return colors[abs(item.name.hashValue) % colors.count]
     }
-}
-#Preview {
-    ContentView()
 }

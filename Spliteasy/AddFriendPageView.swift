@@ -1,3 +1,11 @@
+//
+//  AddFriendPageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Simple page to save a new friend with name and optional contact detail.
+//
 import SwiftUI
 
 struct AddFriendPageView: View {
@@ -10,6 +18,8 @@ struct AddFriendPageView: View {
 
     private let cardBorder = AppPalette.border
     private let cardShadow = Color.black.opacity(0.08)
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -39,6 +49,8 @@ struct AddFriendPageView: View {
             }
         }
     }
+    // Top bar / page heading
+
 
     private var headerSection: some View {
         HStack {

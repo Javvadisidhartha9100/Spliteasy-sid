@@ -1,4 +1,7 @@
 //
+// Reusable filter sheet for balance filtering.
+//
+//
 //  FilterPageView.swift
 //  Spliteasy
 //
@@ -16,6 +19,8 @@ struct FilterPageView: View {
         .youOwe,
         .owesYou
     ]
+    // Main screen layout
+
 
     var body: some View {
         NavigationStack {

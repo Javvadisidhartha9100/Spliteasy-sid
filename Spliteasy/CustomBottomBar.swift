@@ -1,4 +1,7 @@
 //
+// Custom tab bar and floating action button used in the main app layout.
+//
+//
 //  CustomBottomBar.swift
 //  Spliteasy
 //
@@ -22,6 +25,8 @@ struct CustomBottomBar: View {
     private let plusActiveEnd = AppPalette.accentEnd
     private let plusInactiveStart = AppPalette.accentStart
     private let plusInactiveEnd = AppPalette.accentEnd
+    // Main screen layout
+
 
     var body: some View {
         GeometryReader { geo in

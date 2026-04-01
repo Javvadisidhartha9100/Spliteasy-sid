@@ -1,9 +1,19 @@
+//
+//  ActivityPageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// This page shows expense activity and simple charts for category/month view.
+//
 import SwiftUI
 
 struct ActivityPageView: View {
     let transactions: [TransactionItem]
     @Binding var showThemeMenu: Bool
     @State private var selectedChart: ActivityChartType = .category
+    // Main screen layout
+
 
     var body: some View {
         GeometryReader { geo in
@@ -44,6 +54,8 @@ struct ActivityPageView: View {
             )
         }
     }
+    // Top bar / page heading
+
 
     private var headerSection: some View {
         VStack(alignment: .trailing, spacing: 6) {

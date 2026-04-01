@@ -1,4 +1,8 @@
 //
+// Selection screen that shows recent friends and recent groups
+// before opening the add expense page.
+//
+//
 //  RecentSelectionPageView.swift
 //  Spliteasy
 //
@@ -13,6 +17,8 @@ struct RecentSelectionPageView: View {
     let onSelectItem: (BalanceItem) -> Void
     @Binding var selectedTab: Tab
     @Binding var showExpenseSelectionPage: Bool
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -41,6 +47,8 @@ struct RecentSelectionPageView: View {
             }
         }
     }
+    // Top bar / page heading
+
 
     private var headerSection: some View {
         HStack {
@@ -146,6 +154,3 @@ struct RecentSelectionPageView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}

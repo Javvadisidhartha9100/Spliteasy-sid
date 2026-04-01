@@ -1,3 +1,12 @@
+//
+//
+//  HomePageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Home screen with monthly limit summary and quick access to friend balances.
+//
 import SwiftUI
 
 struct HomePageView: View {
@@ -14,6 +23,8 @@ struct HomePageView: View {
     @State private var showFilterSheet = false
     @State private var showMonthlyLimitSheet = false
     @State private var searchText = ""
+    // Main screen layout
+
 
     var body: some View {
         VStack(spacing: 0) {
@@ -123,6 +134,8 @@ struct HomePageView: View {
         .padding(.horizontal, 20)
         
     }
+    // Search UI for quick filtering on the page
+
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -155,6 +168,8 @@ struct HomePageView: View {
                 .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 4)
         )
     }
+    // Monthly budget / limit summary card
+
 
     private var monthlyLimitCard: some View {
         VStack(spacing: 0) {

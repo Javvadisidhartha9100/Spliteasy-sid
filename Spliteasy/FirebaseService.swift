@@ -1,4 +1,8 @@
 //
+// Firebase helper file. All Firestore/Auth/Storage calls are grouped here
+// so the view files stay cleaner.
+//
+//
 //  FirebaseService.swift
 //  Spliteasy
 //
@@ -143,6 +147,7 @@ struct FirestoreExpensePayload {
 }
 
 final class FirebaseService {
+    // Shared singleton so the same Firebase service is used everywhere.
     static let shared = FirebaseService()
 
     let auth = Auth.auth()
@@ -158,6 +163,8 @@ final class FirebaseService {
     var currentUserEmail: String? {
         auth.currentUser?.email
     }
+    // Creates a new user document right after Firebase Auth signup.
+
 
     func registerUser(
         firstName: String,
@@ -215,6 +222,8 @@ final class FirebaseService {
             }
         }
     }
+    // Allows login using either email or a saved phone number.
+
 
     func loginUser(
         identifier: String,
@@ -322,6 +331,8 @@ final class FirebaseService {
             }
         }
     }
+    // Reads the current user profile from Firestore.
+
 
     func fetchCurrentUserProfile(
         completion: @escaping (Result<AppUserProfile, Error>) -> Void
@@ -497,6 +508,8 @@ final class FirebaseService {
             }
         }
     }
+    // Creates a friend record owned by the logged-in user.
+
 
     func addFriend(
         friendName: String,
@@ -582,6 +595,8 @@ final class FirebaseService {
             }
         }
     }
+    // Creates a new group with selected members.
+
 
     func createGroup(
         name: String,
@@ -862,6 +877,8 @@ final class FirebaseService {
             }
         }
     }
+    // Saves a normal friend/group expense and updates the running balance.
+
 
     func saveExpense(
         payload: FirestoreExpensePayload,
@@ -964,6 +981,8 @@ final class FirebaseService {
             }
         }
     }
+    // Special case: group expense also needs to affect related friend balances.
+
 
     func saveGroupExpenseAndUpdateFriends(
         groupDocumentId: String,
@@ -1120,6 +1139,8 @@ final class FirebaseService {
                 }
             }
     }
+    // Used when a user settles part or all of an existing friend balance.
+
 
     func saveSettlement(
         friendDocumentId: String,

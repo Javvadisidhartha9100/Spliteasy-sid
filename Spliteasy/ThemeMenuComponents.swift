@@ -1,3 +1,11 @@
+//
+//  ThemeMenuComponents.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Theme button and side menu used to switch between light/dark/auto modes.
+//
 import SwiftUI
 
 enum AppThemeMode: String, CaseIterable {
@@ -25,6 +33,8 @@ enum AppThemeMode: String, CaseIterable {
 struct ThemeHeaderButton: View {
     @Binding var showThemeMenu: Bool
     @Environment(\.colorScheme) private var colorScheme
+    // Main screen layout
+
 
     var body: some View {
         Button {
@@ -139,9 +149,5 @@ struct ThemeSideMenuView: View {
             .transition(.move(edge: .leading))
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
 

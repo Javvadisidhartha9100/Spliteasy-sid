@@ -1,4 +1,8 @@
 //
+// Detail page for one friend. From here the user can refresh,
+// settle up, block/unblock, or delete the friend.
+//
+//
 //  FriendDetailPageView.swift
 //  Spliteasy
 //
@@ -42,6 +46,8 @@ struct FriendDetailPageView: View {
         self.onToggleBlock = onToggleBlock
         self.onRemoveFriend = onRemoveFriend
     }
+    // Main screen layout
+
 
     var body: some View {
         ZStack {
@@ -113,6 +119,8 @@ struct FriendDetailPageView: View {
             Text("This will remove this friend from your app and database. You can add them again later if needed.")
         }
     }
+    // Top bar / page heading
+
 
     private var headerView: some View {
         HStack {

@@ -1,3 +1,12 @@
+//
+//
+//  FriendsPageView.swift
+//  Spliteasy
+//
+//  Created by SIDHARTHA JAVVADI on 3/24/26.
+//
+// Friends/groups overview page with search, filter, and summary information.
+//
 import SwiftUI
 
 struct FriendsPageView: View {
@@ -14,6 +23,8 @@ struct FriendsPageView: View {
 
     @State private var showFilterSheet = false
     @State private var searchText = ""
+    // Main screen layout
+
 
     var body: some View {
         VStack(spacing: 0) {
@@ -125,6 +136,8 @@ struct FriendsPageView: View {
         .padding(.horizontal, 20)
         
     }
+    // Search UI for quick filtering on the page
+
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -157,6 +170,8 @@ struct FriendsPageView: View {
                 .shadow(color: Color.black.opacity(0.07), radius: 8, x: 0, y: 4)
         )
     }
+    // Summary card shown near the top of the page
+
 
     private var summaryCard: some View {
         VStack(spacing: 0) {
