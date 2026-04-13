@@ -79,20 +79,20 @@ struct ExpenseEntry: Identifiable, Hashable, Sendable {
     let amount: Double
     let dateText: String
     let receiptURL: String
-
+    
     let targetType: String
     let targetDocumentId: String
-
+    
     let paidBy: [String]
     let splitWith: [String]
     let paidAmounts: [String: Double]
     let yourNetAmount: Double
-
+    
     let isGroupMirror: Bool
     let parentGroupExpenseId: String
     let groupName: String
     let groupMemberNames: [String]
-
+    
     init(
         id: String = UUID().uuidString,
         description: String,
@@ -126,15 +126,20 @@ struct ExpenseEntry: Identifiable, Hashable, Sendable {
         self.groupName = groupName
         self.groupMemberNames = groupMemberNames
     }
-
+    
     var isEditableGroupExpense: Bool {
         targetType == "group" || isGroupMirror
     }
-
+    
     var editExpenseDocumentId: String {
-        if isGroupMirror, !parentGroupExpenseId.isEmpty {
-            return parentGroupExpenseId
+        // Always prioritize real parent for group edits
+        if targetType == "group" {
+            if isGroupMirror, !parentGroupExpenseId.isEmpty {
+                return parentGroupExpenseId
+            }
+            return id
         }
+        
         return id
     }
 }

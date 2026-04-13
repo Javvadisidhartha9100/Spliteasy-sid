@@ -72,7 +72,22 @@ struct GroupDetailPageView: View {
                 parentName: group.name,
                 expense: expense,
                 onSave: { newDescription, newAmount, groupDraft in
-                    onUpdateExpense(expense, newDescription, newAmount, groupDraft)
+                    let safeDraft: GroupExpenseDraft?
+
+                    if let draft = groupDraft,
+                       !draft.paidBy.isEmpty,
+                       !draft.splitWith.isEmpty {
+                        safeDraft = draft
+                    } else {
+                        safeDraft = GroupExpenseDraft(
+                            paidBy: expense.paidBy.isEmpty ? ["YOU"] : expense.paidBy,
+                            splitWith: expense.splitWith.isEmpty ? ["YOU"] : expense.splitWith,
+                            yourNetAmount: expense.yourNetAmount,
+                            paidAmounts: expense.paidAmounts
+                        )
+                    }
+
+                    onUpdateExpense(expense, newDescription, newAmount, safeDraft)
                 },
                 onDelete: {
                     onDeleteExpense(expense)

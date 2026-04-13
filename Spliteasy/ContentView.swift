@@ -664,7 +664,17 @@ struct ContentView: View {
                             description: $0.description,
                             amount: $0.amount,
                             dateText: $0.dateText,
-                            receiptURL: $0.receiptURL
+                            receiptURL: $0.receiptURL,
+                            targetType: $0.targetType,
+                            targetDocumentId: $0.targetDocumentId,
+                            paidBy: $0.paidBy,
+                            splitWith: $0.splitWith,
+                            paidAmounts: $0.paidAmounts,
+                            yourNetAmount: $0.yourNetAmount,
+                            isGroupMirror: $0.isGroupMirror,
+                            parentGroupExpenseId: $0.parentGroupExpenseId,
+                            groupName: $0.groupName,
+                            groupMemberNames: $0.groupMemberNames
                         )
                     }
 
@@ -697,7 +707,17 @@ struct ContentView: View {
                             description: $0.description,
                             amount: $0.amount,
                             dateText: $0.dateText,
-                            receiptURL: $0.receiptURL
+                            receiptURL: $0.receiptURL,
+                            targetType: $0.targetType,
+                            targetDocumentId: $0.targetDocumentId,
+                            paidBy: $0.paidBy,
+                            splitWith: $0.splitWith,
+                            paidAmounts: $0.paidAmounts,
+                            yourNetAmount: $0.yourNetAmount,
+                            isGroupMirror: $0.isGroupMirror,
+                            parentGroupExpenseId: $0.parentGroupExpenseId,
+                            groupName: $0.groupName,
+                            groupMemberNames: $0.groupMemberNames.isEmpty ? groupsData[index].memberNames : $0.groupMemberNames
                         )
                     }
 
@@ -715,7 +735,6 @@ struct ContentView: View {
             }
         }
     }
-
     private var currentMonthSpent: Double {
         let currentMonthKey = monthKey(for: Date())
 
@@ -1093,7 +1112,6 @@ struct ContentView: View {
             selectedTab = .home
         }
     }
-
     private func updateExpense(
         _ expense: ExpenseEntry,
         parent: BalanceItem,
@@ -1101,26 +1119,27 @@ struct ContentView: View {
         newAmount: Double,
         groupDraft: GroupExpenseDraft?
     ) {
-        let _ = groupDraft
         let category = inferCategory(from: newDescription)
 
         FirebaseService.shared.updateExpense(
-            expenseDocumentId: expense.id,
+            expenseDocumentId: expense.editExpenseDocumentId,
             newDescription: newDescription,
             newTotalAmount: newAmount,
-            newCategory: category
+            newCategory: category,
+            groupDraft: groupDraft
         ) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
                     loadFriendsFromFirestore()
-                    loadGroupsFromFirestore()
                     loadActivityFromFirestore()
 
                     if parent.kind == .friend {
                         loadFriendHistory(friendId: parent.id)
                     } else {
-                        loadGroupHistory(groupId: parent.id)
+                        loadGroupsFromFirestore {
+                            loadGroupHistory(groupId: parent.id)
+                        }
                     }
 
                     FirebaseService.shared.saveNotification(
@@ -1138,18 +1157,19 @@ struct ContentView: View {
     }
 
     private func deleteExpense(_ expense: ExpenseEntry, parent: BalanceItem) {
-        FirebaseService.shared.deleteExpense(expenseDocumentId: expense.id) { result in
+        FirebaseService.shared.deleteExpense(expenseDocumentId: expense.editExpenseDocumentId) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
                     loadFriendsFromFirestore()
-                    loadGroupsFromFirestore()
                     loadActivityFromFirestore()
 
                     if parent.kind == .friend {
                         loadFriendHistory(friendId: parent.id)
                     } else {
-                        loadGroupHistory(groupId: parent.id)
+                        loadGroupsFromFirestore {
+                            loadGroupHistory(groupId: parent.id)
+                        }
                     }
 
                     FirebaseService.shared.saveNotification(
@@ -1165,7 +1185,6 @@ struct ContentView: View {
             }
         }
     }
-
     private func saveExpense(
         itemID: String,
         description: String,
