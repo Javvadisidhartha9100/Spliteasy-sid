@@ -28,7 +28,6 @@ struct AddExpensePageView: View {
         Double?,
         Double?
     ) -> Void
-
     let onAddMembersToGroup: (BalanceItem, [BalanceItem]) -> Void
     let onDeleteGroup: (BalanceItem) -> Void
     let onBack: (() -> Void)?
@@ -37,6 +36,11 @@ struct AddExpensePageView: View {
     @State private var withName: String = ""
     @State private var descriptionText: String = ""
     @State private var amountText: String = ""
+
+    @State private var locationNameText: String = ""
+    @State private var locationAddressText: String = ""
+    @State private var latitude: Double? = nil
+    @State private var longitude: Double? = nil
 
     @State private var splitEquallySelected = true
     @State private var showCustomSplitSheet = false
@@ -52,15 +56,15 @@ struct AddExpensePageView: View {
     @State private var showAddMembersSheet = false
     @State private var selectedNewMemberIDs: Set<String> = []
     @State private var showDeleteGroupConfirm = false
-    
-    @State private var locationNameText: String = ""
-    @State private var locationAddressText: String = ""
-    @State private var latitude: Double? = nil
-    @State private var longitude: Double? = nil
 
     #if os(iOS)
     @State private var receiptImage: UIImage?
+    @State private var recognizedReceiptText: String = ""
+    @State private var isScanningReceipt = false
+    @State private var receiptScanMessage: String = ""
+    @State private var showReceiptTextSheet = false
     #endif
+
     @State private var showReceiptPicker = false
     @State private var receiptURL: String = ""
     @State private var isUploadingReceipt = false
@@ -81,7 +85,6 @@ struct AddExpensePageView: View {
                     }
                 }
             ) {
-                // ✅ UPDATED: Save button moved to header
                 Button {
                     saveExpense()
                 } label: {
@@ -109,16 +112,14 @@ struct AddExpensePageView: View {
             VStack(alignment: .leading, spacing: 18) {
                 nameCard
                 cameraCard
-                
 
                 inputCard(
                     icon: "bag",
                     placeholder: "Enter description",
                     text: $descriptionText
-                    
                 )
-                locationCard
 
+                locationCard
                 amountCard
                 splitButtonsSection
 
@@ -139,7 +140,6 @@ struct AddExpensePageView: View {
             .padding(.horizontal, 20)
             .padding(.top, 20)
         }
-        
         .sheet(isPresented: $showCustomSplitSheet) {
             CustomSplitPageView(
                 selectedOption: $selectedCustomOption,
@@ -171,6 +171,13 @@ struct AddExpensePageView: View {
         #if os(iOS)
         .sheet(isPresented: $showReceiptPicker) {
             ImagePicker(image: $receiptImage)
+        }
+        .sheet(isPresented: $showReceiptTextSheet) {
+            ReceiptRecognizedTextSheet(recognizedText: recognizedReceiptText)
+        }
+        .onChange(of: receiptImage) { _, newImage in
+            guard let image = newImage else { return }
+            scanReceiptText(from: image)
         }
         #endif
         .confirmationDialog(
@@ -205,8 +212,18 @@ struct AddExpensePageView: View {
         }
         .onChange(of: selectedItem?.id) { _, _ in
             withName = selectedItem?.name ?? ""
+            descriptionText = ""
+            amountText = ""
+            locationNameText = ""
+            locationAddressText = ""
+            latitude = nil
+            longitude = nil
             #if os(iOS)
             receiptImage = nil
+            recognizedReceiptText = ""
+            receiptScanMessage = ""
+            isScanningReceipt = false
+            showReceiptTextSheet = false
             #endif
             receiptURL = ""
             isUploadingReceipt = false
@@ -297,6 +314,45 @@ struct AddExpensePageView: View {
                     .clipped()
                     .cornerRadius(16)
             }
+
+            if isScanningReceipt {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .tint(AppPalette.accentMid)
+
+                    Text("Reading receipt...")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppPalette.secondaryText)
+                }
+            }
+
+            if !receiptScanMessage.isEmpty {
+                Text(receiptScanMessage)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppPalette.accentMid)
+            }
+
+            if !recognizedReceiptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button {
+                    showReceiptTextSheet = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 14, weight: .bold))
+
+                        Text("View Read Text")
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                    .foregroundColor(AppPalette.accentMid)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule()
+                            .fill(AppPalette.accentMid.opacity(0.10))
+                    )
+                }
+                .buttonStyle(.plain)
+            }
             #else
             HStack(spacing: 10) {
                 Image(systemName: "photo")
@@ -318,6 +374,45 @@ struct AddExpensePageView: View {
         .padding(.vertical, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(cardBackground(cornerRadius: 24))
+    }
+
+    private var locationCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Location")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(AppPalette.secondaryText)
+
+            TextField("Store, restaurant, or trip location", text: $locationNameText)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(AppPalette.primaryText)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppPalette.searchField)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(AppPalette.border, lineWidth: 1)
+                        )
+                )
+
+            TextField("Optional address / area", text: $locationAddressText)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppPalette.primaryText)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppPalette.searchField)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(AppPalette.border, lineWidth: 1)
+                        )
+                )
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .background(cardBackground(cornerRadius: 22))
     }
 
     #if os(iOS)
@@ -350,36 +445,6 @@ struct AddExpensePageView: View {
                     .fill(AppPalette.border)
                     .frame(height: 1)
             }
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 18)
-        .background(cardBackground(cornerRadius: 22))
-    }
-    private var locationCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Location")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(AppPalette.secondaryText)
-
-            inputCard(
-                icon: "mappin.and.ellipse",
-                placeholder: "Store, restaurant, or trip location",
-                text: $locationNameText
-            )
-
-            TextField("Optional address / area", text: $locationAddressText)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppPalette.primaryText)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(AppPalette.searchField)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(AppPalette.border, lineWidth: 1)
-                        )
-                )
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
@@ -731,7 +796,6 @@ struct AddExpensePageView: View {
         .background(cardBackground(cornerRadius: 22))
     }
 
-    
     private func cardBackground(cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .fill(AppPalette.card)
@@ -942,6 +1006,9 @@ extension AddExpensePageView {
         guard let selectedItem else { return }
         guard canSaveExpense else { return }
 
+        let cleanedLocationName = locationNameText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedLocationAddress = locationAddressText.trimmingCharacters(in: .whitespacesAndNewlines)
+
         let draft: GroupExpenseDraft? = isGroup ? GroupExpenseDraft(
             paidBy: effectivePaidByPeople,
             splitWith: effectiveSplitPeople,
@@ -956,11 +1023,11 @@ extension AddExpensePageView {
            let data = image.jpegData(compressionQuality: 0.6) {
             isUploadingReceipt = true
             let expenseId = UUID().uuidString
-            
+
             FirebaseService.shared.uploadReceiptImage(expenseId: expenseId, data: data) { result in
                 DispatchQueue.main.async {
                     isUploadingReceipt = false
-                    
+
                     switch result {
                     case .success(let url):
                         receiptURL = url
@@ -971,11 +1038,12 @@ extension AddExpensePageView {
                             activeDirection,
                             draft,
                             url,
-                            locationNameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                            locationAddressText.trimmingCharacters(in: .whitespacesAndNewlines),
+                            cleanedLocationName,
+                            cleanedLocationAddress,
                             latitude,
                             longitude
                         )
+
                     case .failure:
                         onSaveExpense(
                             selectedItem.id,
@@ -984,31 +1052,32 @@ extension AddExpensePageView {
                             activeDirection,
                             draft,
                             nil,
-                            locationNameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                            locationAddressText.trimmingCharacters(in: .whitespacesAndNewlines),
+                            cleanedLocationName,
+                            cleanedLocationAddress,
                             latitude,
                             longitude
                         )
-                        resetAfterSave()
                     }
+
+                    resetAfterSave()
                 }
-                return
             }
+            return
         }
         #endif
 
-            onSaveExpense(
-                selectedItem.id,
-                descriptionText,
-                amountToSave,
-                activeDirection,
-                draft,
-                nil,
-                locationNameText.trimmingCharacters(in: .whitespacesAndNewlines),
-                locationAddressText.trimmingCharacters(in: .whitespacesAndNewlines),
-                latitude,
-                longitude
-            )
+        onSaveExpense(
+            selectedItem.id,
+            descriptionText,
+            amountToSave,
+            activeDirection,
+            draft,
+            nil,
+            cleanedLocationName,
+            cleanedLocationAddress,
+            latitude,
+            longitude
+        )
         resetAfterSave()
     }
 
@@ -1022,9 +1091,45 @@ extension AddExpensePageView {
         paidAmountsText = [:]
         #if os(iOS)
         receiptImage = nil
+        recognizedReceiptText = ""
+        receiptScanMessage = ""
+        isScanningReceipt = false
+        showReceiptTextSheet = false
         #endif
         receiptURL = ""
     }
+
+    #if os(iOS)
+    private func scanReceiptText(from image: UIImage) {
+        isScanningReceipt = true
+        receiptScanMessage = ""
+
+        ReceiptTextReader.shared.scanReceipt(image: image) { result in
+            DispatchQueue.main.async {
+                isScanningReceipt = false
+
+                switch result {
+                case .success(let scan):
+                    recognizedReceiptText = scan.recognizedText
+
+                    if let detectedAmount = scan.detectedAmount {
+                        if amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            amountText = String(format: "%.2f", detectedAmount)
+                            receiptScanMessage = "Detected total: $\(String(format: "%.2f", detectedAmount))"
+                        } else {
+                            receiptScanMessage = "Suggested total: $\(String(format: "%.2f", detectedAmount))"
+                        }
+                    } else {
+                        receiptScanMessage = "Could not detect a total amount from the receipt."
+                    }
+
+                case .failure:
+                    receiptScanMessage = "Could not read the receipt text."
+                }
+            }
+        }
+    }
+    #endif
 }
 
 struct GroupMemberPickerSheet: View {
@@ -1187,5 +1292,76 @@ struct AddGroupMembersSheet: View {
         } else {
             selectedFriendIDs.insert(id)
         }
+    }
+}
+
+struct ReceiptRecognizedTextSheet: View {
+    let recognizedText: String
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if recognizedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(AppPalette.secondaryText)
+
+                        Text("No text detected")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(AppPalette.primaryText)
+
+                        Text("Try another receipt image.")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppPalette.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        LinearGradient(
+                            colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .ignoresSafeArea()
+                    )
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        Text(recognizedText)
+                            .font(.system(size: 15, weight: .medium, design: .monospaced))
+                            .foregroundColor(AppPalette.primaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(AppPalette.card)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .stroke(AppPalette.border, lineWidth: 1)
+                                    )
+                            )
+                            .padding(16)
+                    }
+                    .background(
+                        LinearGradient(
+                            colors: [AppPalette.backgroundTop, AppPalette.backgroundBottom],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .ignoresSafeArea()
+                    )
+                }
+            }
+            .navigationTitle("Receipt Text")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
